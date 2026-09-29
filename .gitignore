@@ -1,0 +1,60 @@
+# ---------- Flutter / Dart ----------
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/generated_plugin_registrant.*
+*.g.dart.bak
+coverage/
+
+# ---------- Android ----------
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/key.properties
+*.jks
+*.keystore
+
+# ---------- iOS / macOS ----------
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/macos/Flutter/ephemeral/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+
+# ---------- Web / Windows / Linux ----------
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+
+# ---------- Firebase ----------
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+# Credenciales privadas (no subir nunca)
+**/google-services.json
+**/GoogleService-Info.plist
+serviceAccountKey*.json
+.env
+.env.*
+
+# ---------- IDEs ----------
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ---------- Sistema operativo ----------
+.DS_Store
+Thumbs.db
+desktop.ini
