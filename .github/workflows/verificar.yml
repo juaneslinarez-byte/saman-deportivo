@@ -1,0 +1,51 @@
+# Revisa que la aplicación tenga el formato correcto, pase el análisis
+# estático y las pruebas, y compile para web. Se ejecuta en cada pull request
+# y en cada integración a develop o main.
+name: Verificar aplicación
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      # Misma versión de Flutter que usa el equipo, para que el formato
+      # y el análisis den el mismo resultado en todas las computadoras.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.7
+          cache: true
+
+      - name: Instalar dependencias
+        run: flutter pub get
+
+      - name: Revisar formato
+        run: dart format --output=none --set-exit-if-changed lib
+
+      - name: Análisis estático
+        run: flutter analyze
+
+      - name: Pruebas
+        run: |
+          if [ -d test ]; then
+            flutter test
+          else
+            echo "Todavía no hay pruebas."
+          fi
+
+      - name: Compilar versión web
+        run: flutter build web --release
