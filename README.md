@@ -29,7 +29,7 @@ El proyecto sigue **OpenUP**, con cuatro fases cerradas por un hito:
 
 | Hito | Fase | Estado |
 | --- | --- | --- |
-| 1. Objetivo del ciclo de vida | Concepción | En curso |
+| 1. Objetivo del ciclo de vida | Concepción | Completado |
 | 2. Arquitectura del ciclo de vida | Elaboración | Pendiente |
 | 3. Capacidad operativa inicial | Construcción | Pendiente |
 | 4. Lanzamiento del producto | Transición | Pendiente |
