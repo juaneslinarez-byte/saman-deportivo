@@ -14,7 +14,11 @@ Artefactos del proyecto organizados por hito de OpenUP.
 
 ## Hito 2: Elaboración
 
-Pendiente: arquitectura, patrones de diseño y módulo de autenticación.
+| Archivo | Contenido |
+| --- | --- |
+| [modelo-de-datos.md](modelo-de-datos.md) | Colecciones de Cloud Firestore, sus campos y el acceso esperado de cada actor |
+
+Pendiente: módulo de autenticación.
 
 ## Hito 3: Construcción
 
