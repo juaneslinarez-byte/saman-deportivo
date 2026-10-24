@@ -22,8 +22,13 @@ Artefactos del proyecto organizados por hito de OpenUP.
 | [hito-2/patron_repositorio.png](hito-2/patron_repositorio.png) | Patrón Repositorio |
 | [hito-2/patron_observador.png](hito-2/patron_observador.png) | Patrón Observador |
 | [hito-2/patron_fabrica.png](hito-2/patron_fabrica.png) | Patrón Fábrica simple (Persona.fromMap) |
+| [hito-2/diagrama_clases.md](hito-2/diagrama_clases.md) | Diagrama de clases con Pago ([imagen](hito-2/diagrama_clases.png)) |
+| [hito-2/secuencia_inicio_sesion.md](hito-2/secuencia_inicio_sesion.md) | Secuencia de CU-01 Iniciar sesión ([imagen](hito-2/secuencia_inicio_sesion.png)) |
+| [hito-2/secuencia_registro.md](hito-2/secuencia_registro.md) | Secuencia del registro de un estudiante ([imagen](hito-2/secuencia_registro.png)) |
+| [hito-2/secuencia_inscripcion.md](hito-2/secuencia_inscripcion.md) | Secuencia de CU-03 Inscribirse ([imagen](hito-2/secuencia_inscripcion.png)) |
+| [hito-2/secuencia_pago.md](hito-2/secuencia_pago.md) | Secuencia de CU-12 y CU-13: pago de solvencia y revisión ([imagen](hito-2/secuencia_pago.png)) |
 
-Los archivos .dot y .puml de cada diagrama están junto a su imagen en [hito-2/](hito-2/).
+Los archivos .dot, .puml y .md (Mermaid) de cada diagrama están junto a su imagen en [hito-2/](hito-2/).
 
 Pendiente: módulo de autenticación.
 
