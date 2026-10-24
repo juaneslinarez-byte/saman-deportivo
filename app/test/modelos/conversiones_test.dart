@@ -22,10 +22,7 @@ void main() {
     });
 
     test('convierte milisegundos desde 1970', () {
-      expect(
-        leerFecha(1000),
-        DateTime.fromMillisecondsSinceEpoch(1000),
-      );
+      expect(leerFecha(1000), DateTime.fromMillisecondsSinceEpoch(1000));
     });
 
     test('convierte un objeto con toDate() (Timestamp de Firestore)', () {

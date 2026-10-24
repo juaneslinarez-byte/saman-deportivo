@@ -74,7 +74,10 @@ void main() {
     });
 
     test('respeta habilitado = false (usuario deshabilitado)', () {
-      final p = Persona.fromMap('e1', {...datosEstudiante, 'habilitado': false});
+      final p = Persona.fromMap('e1', {
+        ...datosEstudiante,
+        'habilitado': false,
+      });
       expect(p.habilitado, isFalse);
     });
 
@@ -99,7 +102,10 @@ void main() {
     });
 
     test('fromMap lee solvente = true', () {
-      final e = Estudiante.fromMap('e1', {...datosEstudiante, 'solvente': true});
+      final e = Estudiante.fromMap('e1', {
+        ...datosEstudiante,
+        'solvente': true,
+      });
       expect(e.solvente, isTrue);
     });
 

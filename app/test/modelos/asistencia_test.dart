@@ -21,7 +21,10 @@ void main() {
     });
 
     test('fromMap lee un registro ausente', () {
-      final a = Asistencia.fromMap('a1', {...datosAsistencia(), 'presente': false});
+      final a = Asistencia.fromMap('a1', {
+        ...datosAsistencia(),
+        'presente': false,
+      });
       expect(a.presente, isFalse);
     });
 
