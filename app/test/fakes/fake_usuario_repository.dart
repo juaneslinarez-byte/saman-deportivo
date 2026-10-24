@@ -23,6 +23,29 @@ class FakeUsuarioRepository implements UsuarioRepository {
   /// Cantidad de perfiles guardados.
   int get cantidad => _perfiles.length;
 
+  /// Cambia la solvencia de un estudiante, como lo hace el administrador al
+  /// aprobar un pago (RF-SIS-07). No usa [actualizarPerfil] porque ese metodo
+  /// no puede modificarla.
+  void establecerSolvencia(String id, bool solvente) {
+    final actual = _perfiles[id];
+    if (actual is! Estudiante) {
+      throw StateError('No existe el estudiante $id');
+    }
+    final nuevo = Estudiante(
+      id: actual.id,
+      nombre: actual.nombre,
+      apellido: actual.apellido,
+      cedula: actual.cedula,
+      correo: actual.correo,
+      habilitado: actual.habilitado,
+      carnet: actual.carnet,
+      carrera: actual.carrera,
+      solvente: solvente,
+    );
+    _perfiles[id] = nuevo;
+    _cambios.add(MapEntry(id, nuevo));
+  }
+
   @override
   Future<Persona?> obtener(String id) async {
     _verificarFallo();
