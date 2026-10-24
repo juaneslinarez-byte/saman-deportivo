@@ -1,6 +1,6 @@
 # Diagrama de secuencia: Pago de solvencia
 
-**Casos de uso:** CU-12 Pagar solvencia y CU-13 Revisar pagos pendientes · **Requisitos:** RF-EST-08, RF-EST-09, RF-ADM-05, RF-SIS-07, RF-SIS-11, RF-SIS-12
+**Casos de uso:** CU-12 Pagar solvencia y CU-16 Revisar pagos · **Requisitos:** RF-EST-08, RF-ADM-05, RF-SIS-07, RF-SIS-11, RF-SIS-12
 
 Muestra las dos fases del pago: el estudiante paga a través de la pasarela y el administrador revisa el pago. El estudiante pasa a estar solvente solo cuando el administrador lo aprueba.
 
