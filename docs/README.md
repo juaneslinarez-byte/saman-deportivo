@@ -17,6 +17,13 @@ Artefactos del proyecto organizados por hito de OpenUP.
 | Archivo | Contenido |
 | --- | --- |
 | [modelo-de-datos.md](modelo-de-datos.md) | Colecciones de Cloud Firestore, sus campos y el acceso esperado de cada actor |
+| [hito-2/arquitectura.png](hito-2/arquitectura.png) | Arquitectura MVVM de la aplicación sobre Firebase |
+| [hito-2/paquetes.png](hito-2/paquetes.png) | Diagrama de paquetes por capas |
+| [hito-2/patron_repositorio.png](hito-2/patron_repositorio.png) | Patrón Repositorio |
+| [hito-2/patron_observador.png](hito-2/patron_observador.png) | Patrón Observador |
+| [hito-2/patron_fabrica.png](hito-2/patron_fabrica.png) | Patrón Fábrica simple (Persona.fromMap) |
+
+Los archivos .dot y .puml de cada diagrama están junto a su imagen en [hito-2/](hito-2/).
 
 Pendiente: módulo de autenticación.
 

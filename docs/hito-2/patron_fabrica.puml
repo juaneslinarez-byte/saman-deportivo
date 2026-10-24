@@ -1,0 +1,43 @@
+@startuml
+!include estilo.iuml
+skinparam linetype polyline
+
+abstract class Persona {
+  - id: String
+  - nombre: String
+  - apellido: String
+  - cedula: String
+  - correo: String
+  - habilitado: bool
+  + {static} fromMap(id: String, datos: Map<String, dynamic>): Persona
+  + toMap(): Map<String, dynamic>
+}
+
+class Estudiante {
+  - carnet: String
+  - carrera: String
+  - solvente: bool
+}
+class Entrenador {
+  - especialidad: String
+}
+class Administrador {
+  - cargo: String
+}
+
+class UsuarioRepository <<cliente>> {
+  + obtener(id: String): Future<Persona?>
+}
+
+Persona <|-- Estudiante
+Persona <|-- Entrenador
+Persona <|-- Administrador
+UsuarioRepository ..> Persona : fromMap(id, datos)
+
+note right of Persona
+  fromMap() lee datos["actor"]:
+  "estudiante" → Estudiante
+  "entrenador" → Entrenador
+  "administrador" → Administrador
+end note
+@enduml

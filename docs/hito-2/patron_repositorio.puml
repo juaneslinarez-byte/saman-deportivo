@@ -1,0 +1,49 @@
+@startuml
+!include estilo.iuml
+skinparam linetype polyline
+
+class CatalogoViewModel <<cliente>> {
+  - repositorio: InscripcionRepository
+  + inscribirse(deporte: Deporte)
+  + cancelar(inscripcion: Inscripcion)
+}
+
+interface InscripcionRepository <<repositorio>> {
+  + inscribir(estudiante: Estudiante, deporte: Deporte): Future<Inscripcion>
+  + cancelar(inscripcion: Inscripcion): Future<void>
+  + observarPorEstudiante(idEstudiante: String): Stream<List<Inscripcion>>
+}
+
+class InscripcionRepositoryFirebase {
+  - db: FirebaseFirestore
+  + inscribir(estudiante, deporte): Future<Inscripcion>
+  + cancelar(inscripcion): Future<void>
+  + observarPorEstudiante(idEstudiante): Stream<List<Inscripcion>>
+}
+
+class InscripcionRepositoryFalso <<pruebas>> {
+  - datos: List<Inscripcion>
+  + inscribir(estudiante, deporte): Future<Inscripcion>
+  + cancelar(inscripcion): Future<void>
+  + observarPorEstudiante(idEstudiante): Stream<List<Inscripcion>>
+}
+
+class FirebaseFirestore <<externa>>
+class Inscripcion {
+  - id: String
+  - fecha: Date
+  - estado: activa | cancelada
+}
+
+CatalogoViewModel --> InscripcionRepository : usa
+InscripcionRepository <|.. InscripcionRepositoryFirebase
+InscripcionRepository <|.. InscripcionRepositoryFalso
+InscripcionRepositoryFirebase --> FirebaseFirestore : runTransaction()
+InscripcionRepository ..> Inscripcion : crea y devuelve
+
+note right of CatalogoViewModel
+  El ViewModel conoce solo la interfaz:
+  no sabe si los datos vienen de
+  Firestore o de un repositorio falso.
+end note
+@enduml
