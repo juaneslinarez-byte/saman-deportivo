@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'login_view.dart';
 import '../perfil/perfil_view.dart';
 
@@ -18,7 +19,8 @@ class _RegistroViewState extends State<RegistroView> {
   final TextEditingController _carnetController = TextEditingController();
   final TextEditingController _carreraController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _cargando = false;
 
@@ -210,7 +212,9 @@ class _RegistroViewState extends State<RegistroView> {
 
                   // Botón Registrarme
                   _cargando
-                      ? const Center(child: CircularProgressIndicator(color: orangeUnimet))
+                      ? const Center(
+                          child: CircularProgressIndicator(color: orangeUnimet),
+                        )
                       : ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: orangeUnimet,
@@ -224,7 +228,10 @@ class _RegistroViewState extends State<RegistroView> {
                           onPressed: _registrarse,
                           child: const Text(
                             'Registrarme',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                   const SizedBox(height: 20),
@@ -235,7 +242,10 @@ class _RegistroViewState extends State<RegistroView> {
                     children: [
                       const Text(
                         '¿Ya tienes cuenta? ',
-                        style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 13,
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -295,7 +305,10 @@ class _RegistroViewState extends State<RegistroView> {
             hintStyle: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 13),
             filled: true,
             fillColor: bg,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,

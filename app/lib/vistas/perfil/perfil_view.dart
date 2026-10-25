@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../auth/login_view.dart';
 
@@ -11,8 +9,6 @@ class PerfilView extends StatelessWidget {
   Widget build(BuildContext context) {
     const Color orangeUnimet = Color(0xFFF37021);
     const Color greyBg = Color(0xFFF1F2F4);
-
-    User? usuarioActual = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -43,50 +39,11 @@ class PerfilView extends StatelessWidget {
                 ),
               ],
             ),
-            child: usuarioActual == null
-                ? _buildPerfilDemo(
-                    context: context,
-                    orangeUnimet: orangeUnimet,
-                    greyBg: greyBg,
-                  )
-                : FutureBuilder<DocumentSnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection('usuarios')
-                        .doc(usuarioActual.uid)
-                        .get(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Padding(
-                          padding: EdgeInsets.all(32.0),
-                          child: Center(
-                            child: CircularProgressIndicator(color: orangeUnimet),
-                          ),
-                        );
-                      }
-
-                      Map<String, dynamic> datos = snapshot.hasData && snapshot.data!.exists
-                          ? snapshot.data!.data() as Map<String, dynamic>
-                          : {};
-
-                      String rol = datos['rol'] ?? 'Estudiante';
-                      String nombre = datos['nombre'] ?? (usuarioActual.displayName ?? 'Usuario');
-                      String apellido = datos['apellido'] ?? '';
-                      String correo = datos['correo'] ?? (usuarioActual.email ?? 'usuario@correo.unimet.edu.ve');
-                      String carnet = datos['carnet'] ?? datos['cedula'] ?? 'Sin registrar';
-                      String carrera = datos['carrera'] ?? 'Estudiante UNIMET';
-
-                      return _buildPerfilContent(
-                        context: context,
-                        nombre: '$nombre $apellido'.trim(),
-                        correo: correo,
-                        carnet: carnet,
-                        carrera: carrera,
-                        rol: rol,
-                        orangeUnimet: orangeUnimet,
-                        greyBg: greyBg,
-                      );
-                    },
-                  ),
+            child: _buildPerfilDemo(
+              context: context,
+              orangeUnimet: orangeUnimet,
+              greyBg: greyBg,
+            ),
           ),
         ),
       ),
@@ -107,7 +64,6 @@ class PerfilView extends StatelessWidget {
 
     return Column(
       children: [
-        // Avatar circular con inicial
         CircleAvatar(
           radius: 48,
           backgroundColor: const Color(0xFFFFF3EC),
@@ -122,7 +78,6 @@ class PerfilView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Nombre Completo
         Text(
           nombre,
           style: const TextStyle(
@@ -134,7 +89,6 @@ class PerfilView extends StatelessWidget {
         ),
         const SizedBox(height: 8),
 
-        // Badge de Rol
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
@@ -152,7 +106,6 @@ class PerfilView extends StatelessWidget {
         ),
         const SizedBox(height: 28),
 
-        // Datos del Usuario
         _buildInfoTile(
           label: 'Correo Institucional',
           value: correo,
@@ -177,7 +130,6 @@ class PerfilView extends StatelessWidget {
         ),
         const SizedBox(height: 32),
 
-        // Botón Cerrar Sesión
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
@@ -188,12 +140,8 @@ class PerfilView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(30),
               ),
             ),
-            onPressed: () async {
-              try {
-                await FirebaseAuth.instance.signOut();
-              } catch (_) {}
-
-              if (!context.mounted) return;
+            onPressed: () {
+              // TODO: conectar con AuthViewModel.cerrarSesion()
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginView()),
@@ -258,7 +206,6 @@ class PerfilView extends StatelessWidget {
     );
   }
 
-  // Vista de prueba cuando aún no hay sesión activa
   Widget _buildPerfilDemo({
     required BuildContext context,
     required Color orangeUnimet,

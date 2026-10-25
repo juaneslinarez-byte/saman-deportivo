@@ -27,10 +27,8 @@ class _RecuperarPasswordViewState extends State<RecuperarPasswordView> {
 
     try {
       // ----------------------------------------------------------------------
-      // TODO (BACKEND): Conectar aquí con Firebase Auth / AuthRepository
-      // Ejemplo:
-      // await FirebaseAuth.instance.sendPasswordResetEmail(
-      //   email: _correoController.text.trim(),
+      //// TODO: Conectar aquí con AuthViewModel.recuperarPassword()
+      //
       // );
       // ----------------------------------------------------------------------
 
@@ -68,10 +66,7 @@ class _RecuperarPasswordViewState extends State<RecuperarPasswordView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recuperar Contraseña'),
-        
-      ),
+      appBar: AppBar(title: const Text('Recuperar Contraseña')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -81,20 +76,16 @@ class _RecuperarPasswordViewState extends State<RecuperarPasswordView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
-                const Icon(
-                  Icons.lock_reset,
-                  size: 80,
-                  color: Colors.green,
-                ),
+                const Icon(Icons.lock_reset, size: 80, color: Colors.green),
                 const SizedBox(height: 24),
-                
+
                 const Text(
                   'Restablece tu contraseña',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                
+
                 Text(
                   'Ingresa tu correo institucional. Te enviaremos un enlace para que puedas crear una nueva contraseña.',
                   style: TextStyle(color: Colors.grey[700], fontSize: 14),
@@ -131,7 +122,10 @@ class _RecuperarPasswordViewState extends State<RecuperarPasswordView> {
                         onPressed: _solicitarRestablecimiento,
                         child: const Text(
                           'ENVIAR CORREO DE RECUPERACIÓN',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
               ],
