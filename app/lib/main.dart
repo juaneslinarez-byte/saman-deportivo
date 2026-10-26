@@ -17,9 +17,15 @@ class MockAuthRepository implements AuthRepository {
   @override
   String? get idUsuarioActual => null;
   @override
-  Future<String> registrar({required String correo, required String contrasena}) async => '123';
+  Future<String> registrar({
+    required String correo,
+    required String contrasena,
+  }) async => '123';
   @override
-  Future<String> iniciarSesion({required String correo, required String contrasena}) async => '123';
+  Future<String> iniciarSesion({
+    required String correo,
+    required String contrasena,
+  }) async => '123';
   @override
   Future<void> cerrarSesion() async {}
   @override
@@ -38,6 +44,7 @@ class MockUsuarioRepository implements UsuarioRepository {
   @override
   Future<List<Persona>> listar({Actor? actor}) async => [];
 }
+
 //Widget principal
 class SamanDeportivoApp extends StatelessWidget {
   const SamanDeportivoApp({super.key});
@@ -47,25 +54,19 @@ class SamanDeportivoApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         //Reemplazamos las implementaciones temporales por las clases reales
-        Provider<AuthRepository>(
-          create: (_) => MockAuthRepository(),
-        ),
-        Provider<UsuarioRepository>(
-          create: (_) => MockUsuarioRepository(),
-        ),
-        
+        Provider<AuthRepository>(create: (_) => MockAuthRepository()),
+        Provider<UsuarioRepository>(create: (_) => MockUsuarioRepository()),
+
         ChangeNotifierProvider<AuthViewModel>(
-          create: (context) => AuthViewModel(
-            authRepository: context.read<AuthRepository>(),
-          ),
+          create: (context) =>
+              AuthViewModel(authRepository: context.read<AuthRepository>()),
         ),
-        
+
         ChangeNotifierProxyProvider<AuthViewModel, PerfilViewModel>(
           create: (context) => PerfilViewModel(
             usuarioRepository: context.read<UsuarioRepository>(),
           ),
           update: (context, authVM, perfilVM) {
-            
             Future.microtask(() {
               perfilVM?.actualizarSesion(authVM.idUsuarioActual);
             });
