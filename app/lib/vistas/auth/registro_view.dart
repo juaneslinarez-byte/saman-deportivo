@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'login_view.dart';
-import '../perfil/perfil_view.dart';
+import '../../core/colores.dart';
+import '../../core/rutas.dart';
+import '../../core/validadores.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 
 class RegistroView extends StatefulWidget {
   const RegistroView({super.key});
@@ -15,6 +18,7 @@ class _RegistroViewState extends State<RegistroView> {
 
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _apellidoController = TextEditingController();
+  final TextEditingController _cedulaController = TextEditingController();
   final TextEditingController _correoController = TextEditingController();
   final TextEditingController _carnetController = TextEditingController();
   final TextEditingController _carreraController = TextEditingController();
@@ -28,6 +32,7 @@ class _RegistroViewState extends State<RegistroView> {
   void dispose() {
     _nombreController.dispose();
     _apellidoController.dispose();
+    _cedulaController.dispose();
     _correoController.dispose();
     _carnetController.dispose();
     _carreraController.dispose();
@@ -36,38 +41,46 @@ class _RegistroViewState extends State<RegistroView> {
     super.dispose();
   }
 
-  void _registrarse() async {
+  Future<void> _registrarse() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Las contraseñas no coinciden'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() => _cargando = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+    final authViewModel = context.read<AuthViewModel>();
+    // Crea la cuenta en Authentication y el perfil de estudiante en
+    // Firestore (usuarios/{uid}).
+    final exito = await authViewModel.registrar(
+      nombre: _nombreController.text.trim(),
+      apellido: _apellidoController.text.trim(),
+      cedula: _cedulaController.text.trim(),
+      carnet: _carnetController.text.trim(),
+      carrera: _carreraController.text.trim(),
+      correo: _correoController.text.trim(),
+      contrasena: _passwordController.text,
+    );
 
     if (!mounted) return;
     setState(() => _cargando = false);
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const PerfilView()),
-    );
+    if (exito) {
+      // Al entrar se borra el historial: «atrás» no vuelve al formulario.
+      Navigator.pushNamedAndRemoveUntil(context, Rutas.perfil, (ruta) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authViewModel.error ?? 'No se pudo crear la cuenta.'),
+          backgroundColor: ColoresSaman.rojo,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color orangeUnimet = Color(0xFFF37021);
-    const Color greyBg = Color(0xFFF1F2F4);
+    const Color orangeUnimet = ColoresSaman.naranja;
+    const Color greyBg = ColoresSaman.gris;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: ColoresSaman.fondo,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -75,7 +88,7 @@ class _RegistroViewState extends State<RegistroView> {
             constraints: const BoxConstraints(maxWidth: 520),
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: ColoresSaman.blanco,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -96,14 +109,17 @@ class _RegistroViewState extends State<RegistroView> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: ColoresSaman.azulOscuro,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
                   const Text(
                     'Registro de estudiantes con correo institucional',
-                    style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: ColoresSaman.textoSecundario,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -139,6 +155,17 @@ class _RegistroViewState extends State<RegistroView> {
                     controller: _correoController,
                     bg: greyBg,
                     keyboardType: TextInputType.emailAddress,
+                    validator: Validadores.correoInstitucional,
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Cédula: la pide el perfil del estudiante.
+                  _buildLabeledInput(
+                    label: 'Cédula',
+                    hint: '28123456',
+                    controller: _cedulaController,
+                    bg: greyBg,
+                    keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 14),
 
@@ -176,6 +203,7 @@ class _RegistroViewState extends State<RegistroView> {
                           controller: _passwordController,
                           bg: greyBg,
                           obscureText: true,
+                          validator: Validadores.contrasena,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -186,6 +214,10 @@ class _RegistroViewState extends State<RegistroView> {
                           controller: _confirmPasswordController,
                           bg: greyBg,
                           obscureText: true,
+                          validator: (valor) => Validadores.confirmacion(
+                            valor,
+                            _passwordController.text,
+                          ),
                         ),
                       ),
                     ],
@@ -196,7 +228,7 @@ class _RegistroViewState extends State<RegistroView> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3EC),
+                      color: ColoresSaman.naranjaSuave,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
@@ -218,7 +250,7 @@ class _RegistroViewState extends State<RegistroView> {
                       : ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: orangeUnimet,
-                            foregroundColor: Colors.white,
+                            foregroundColor: ColoresSaman.blanco,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -243,18 +275,13 @@ class _RegistroViewState extends State<RegistroView> {
                       const Text(
                         '¿Ya tienes cuenta? ',
                         style: TextStyle(
-                          color: Color(0xFF64748B),
+                          color: ColoresSaman.textoSecundario,
                           fontSize: 13,
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginView(),
-                            ),
-                          );
+                          Navigator.pushReplacementNamed(context, Rutas.login);
                         },
                         child: const Text(
                           'Inicia sesión',
@@ -283,6 +310,7 @@ class _RegistroViewState extends State<RegistroView> {
     required Color bg,
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
+    FormFieldValidator<String>? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,7 +320,7 @@ class _RegistroViewState extends State<RegistroView> {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF334155),
+            color: ColoresSaman.textoCampo,
           ),
         ),
         const SizedBox(height: 6),
@@ -302,7 +330,10 @@ class _RegistroViewState extends State<RegistroView> {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 13),
+            hintStyle: const TextStyle(
+              color: ColoresSaman.textoTenue,
+              fontSize: 13,
+            ),
             filled: true,
             fillColor: bg,
             contentPadding: const EdgeInsets.symmetric(
@@ -314,7 +345,7 @@ class _RegistroViewState extends State<RegistroView> {
               borderSide: BorderSide.none,
             ),
           ),
-          validator: (val) => val == null || val.isEmpty ? 'Requerido' : null,
+          validator: validator ?? Validadores.requerido,
         ),
       ],
     );
