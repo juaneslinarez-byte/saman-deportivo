@@ -1,10 +1,15 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+import 'firebase_options.dart';
 import 'vistas/auth/login_view.dart';
 import 'vistas/auth/registro_view.dart';
 import 'vistas/perfil/perfil_view.dart';
 
-void main() {
+Future<void> main() async {
+  // Firebase debe estar listo antes de que la app use los repositorios.
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 

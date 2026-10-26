@@ -1,0 +1,68 @@
+rules_version = '2';
+
+// Reglas de seguridad de Cloud Firestore.
+// Siguen la tabla "Acceso esperado" de docs/modelo-de-datos.md.
+// Se publican con: firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ¿Hay alguien con sesión iniciada?
+    function conSesion() {
+      return request.auth != null;
+    }
+
+    // ¿El usuario con sesión es el dueño del documento {uid}?
+    function esDueno(uid) {
+      return conSesion() && request.auth.uid == uid;
+    }
+
+    // ¿El usuario con sesión es administrador? Lo lee de su propio perfil.
+    function esAdministrador() {
+      return conSesion()
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid))
+             .data.actor == 'administrador';
+    }
+
+    // ¿La escritura cambia alguno de estos campos?
+    function cambiaAlguno(campos) {
+      return request.resource.data.diff(resource.data)
+        .affectedKeys().hasAny(campos);
+    }
+
+    // ---------------------------------------------------------------
+    // Perfiles: usuarios/{uid}
+    // ---------------------------------------------------------------
+    match /usuarios/{uid} {
+      // Cada usuario lee su propio perfil; el administrador lee todos.
+      allow read: if esDueno(uid) || esAdministrador();
+
+      // Al registrarse, cada uno crea solo su propio perfil, y siempre
+      // como estudiante habilitado y no solvente. Así nadie puede
+      // registrarse como administrador ni declararse solvente.
+      allow create: if esDueno(uid)
+        && request.resource.data.actor == 'estudiante'
+        && request.resource.data.solvente == false
+        && request.resource.data.habilitado == true;
+
+      // Cada usuario edita su perfil, pero no puede cambiarse el actor,
+      // la solvencia ni si está habilitado.
+      allow update: if esDueno(uid)
+        && !cambiaAlguno(['actor', 'solvente', 'habilitado']);
+
+      // El administrador crea, edita y borra cualquier perfil.
+      allow create, update, delete: if esAdministrador();
+    }
+
+    // ---------------------------------------------------------------
+    // Resto de colecciones (deportes, sesiones, inscripciones,
+    // asistencias y pagos).
+    // ---------------------------------------------------------------
+    // Hasta el Hito 3, el catálogo solo se lee y el resto de las colecciones queda cerrado.
+    match /{coleccion}/{id} {
+      // Catálogo: lo lee cualquier usuario con sesión (docs/modelo-de-datos.md).
+      allow read: if coleccion in ['deportes', 'sesiones'] && conSesion();
+      // El resto se abre en el Hito 3, con sus propias reglas.
+      allow write: if false;
+    }
+  }
+}
