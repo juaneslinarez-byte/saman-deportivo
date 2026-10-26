@@ -30,7 +30,7 @@ El proyecto sigue **OpenUP**, con cuatro fases cerradas por un hito:
 | Hito | Fase | Estado |
 | --- | --- | --- |
 | 1. Objetivo del ciclo de vida | Concepción | Completado |
-| 2. Arquitectura del ciclo de vida | Elaboración | En curso |
+| 2. Arquitectura del ciclo de vida | Elaboración | Completado |
 | 3. Capacidad operativa inicial | Construcción | Pendiente |
 | 4. Lanzamiento del producto | Transición | Pendiente |
 
@@ -57,7 +57,7 @@ app/lib/
 ├── viewmodels/    Estado y acciones de cada pantalla
 ├── repositorios/  Acceso a los datos (patrón Repositorio): interfaces e implementaciones con Firebase
 ├── modelos/       Entidades del dominio: Persona, Estudiante, Entrenador, Administrador, Deporte, Sesion, Inscripcion, Asistencia y Pago
-├── core/          Tema visual, rutas, validadores y widgets compartidos
+├── core/          Paleta de colores, tema visual, rutas y validadores compartidos
 └── main.dart
 ```
 
@@ -71,7 +71,7 @@ Las dependencias van en un solo sentido: las vistas usan los ViewModels, los Vie
 
 ## Cómo ejecutar el proyecto
 
-Requisitos: Flutter 3.47.7 (canal estable) y Google Chrome. La conexión con Firebase se agrega en el Hito 2.
+Requisitos: Flutter 3.47.7 (canal estable) y Google Chrome. La aplicación ya está conectada al proyecto de Firebase `proyecto-saman-deportivo` (configuración en `app/lib/firebase_options.dart`), así que no hace falta configurar nada más.
 
 ```bash
 git clone https://github.com/juaneslinarez-byte/saman-deportivo.git
