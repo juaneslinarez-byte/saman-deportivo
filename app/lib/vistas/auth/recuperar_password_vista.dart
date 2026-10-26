@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../core/colores.dart';
+import '../../core/validadores.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 
 class RecuperarPasswordView extends StatefulWidget {
   const RecuperarPasswordView({super.key});
@@ -21,45 +26,34 @@ class _RecuperarPasswordViewState extends State<RecuperarPasswordView> {
   Future<void> _solicitarRestablecimiento() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _cargando = true;
-    });
+    setState(() => _cargando = true);
+    final authViewModel = context.read<AuthViewModel>();
+    final exito = await authViewModel.recuperarPassword(
+      _correoController.text.trim(),
+    );
 
-    try {
-      // ----------------------------------------------------------------------
-      //// TODO: Conectar aquí con AuthViewModel.recuperarPassword()
-      //
-      // );
-      // ----------------------------------------------------------------------
+    if (!mounted) return;
+    setState(() => _cargando = false);
 
-      // Simulación de tiempo de respuesta para pruebas de UI
-      await Future.delayed(const Duration(seconds: 1));
-
-      if (!mounted) return;
-
+    if (exito) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Se ha enviado un enlace de recuperación a tu correo.'),
-          backgroundColor: Colors.green,
+          backgroundColor: ColoresSaman.verde,
         ),
       );
-
-      // Regresa a la pantalla de Login
+      // Regresa a la pantalla de inicio de sesión.
       Navigator.pop(context);
-    } catch (e) {
-      if (!mounted) return;
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al enviar correo: ${e.toString()}'),
-          backgroundColor: Colors.red,
+          content: Text(
+            authViewModel.error ??
+                'No se pudo enviar el correo de recuperación.',
+          ),
+          backgroundColor: ColoresSaman.rojo,
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _cargando = false;
-        });
-      }
     }
   }
 
@@ -76,7 +70,11 @@ class _RecuperarPasswordViewState extends State<RecuperarPasswordView> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
-                const Icon(Icons.lock_reset, size: 80, color: Colors.green),
+                const Icon(
+                  Icons.lock_reset,
+                  size: 80,
+                  color: ColoresSaman.verde,
+                ),
                 const SizedBox(height: 24),
 
                 const Text(
@@ -101,15 +99,7 @@ class _RecuperarPasswordViewState extends State<RecuperarPasswordView> {
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa tu correo';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Ingresa un correo válido';
-                    }
-                    return null;
-                  },
+                  validator: Validadores.correoInstitucional,
                 ),
                 const SizedBox(height: 24),
 
