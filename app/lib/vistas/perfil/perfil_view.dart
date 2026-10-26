@@ -1,24 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../auth/login_view.dart';
+import '../../core/colores.dart';
+import '../../core/rutas.dart';
+import '../../modelos/modelos.dart';
+import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/perfil_viewmodel.dart';
 
 class PerfilView extends StatelessWidget {
   const PerfilView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    const Color orangeUnimet = Color(0xFFF37021);
-    const Color greyBg = Color(0xFFF1F2F4);
+    const Color orangeUnimet = ColoresSaman.naranja;
+    const Color greyBg = ColoresSaman.gris;
+    // El perfil llega en tiempo real desde Firestore a través del ViewModel.
+    final perfilViewModel = context.watch<PerfilViewModel>();
+    final persona = perfilViewModel.perfil;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: ColoresSaman.fondo,
       appBar: AppBar(
         title: const Text(
           'Mi Perfil',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1E293B),
+        backgroundColor: ColoresSaman.blanco,
+        foregroundColor: ColoresSaman.azulOscuro,
         elevation: 0,
         centerTitle: true,
       ),
@@ -29,7 +37,7 @@ class PerfilView extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 480),
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: ColoresSaman.blanco,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -39,11 +47,14 @@ class PerfilView extends StatelessWidget {
                 ),
               ],
             ),
-            child: _buildPerfilDemo(
-              context: context,
-              orangeUnimet: orangeUnimet,
-              greyBg: greyBg,
-            ),
+            child: persona == null
+                ? _buildSinPerfil(perfilViewModel)
+                : _buildPerfil(
+                    context: context,
+                    persona: persona,
+                    orangeUnimet: orangeUnimet,
+                    greyBg: greyBg,
+                  ),
           ),
         ),
       ),
@@ -66,7 +77,7 @@ class PerfilView extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 48,
-          backgroundColor: const Color(0xFFFFF3EC),
+          backgroundColor: ColoresSaman.naranjaSuave,
           child: Text(
             inicial,
             style: TextStyle(
@@ -83,7 +94,7 @@ class PerfilView extends StatelessWidget {
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+            color: ColoresSaman.azulOscuro,
           ),
           textAlign: TextAlign.center,
         ),
@@ -98,7 +109,7 @@ class PerfilView extends StatelessWidget {
           child: Text(
             rol,
             style: const TextStyle(
-              color: Colors.white,
+              color: ColoresSaman.blanco,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),
@@ -135,22 +146,25 @@ class PerfilView extends StatelessWidget {
           child: OutlinedButton(
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: const BorderSide(color: Color(0xFFEF4444)),
+              side: const BorderSide(color: ColoresSaman.rojo),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
             ),
-            onPressed: () {
-              // TODO: conectar con AuthViewModel.cerrarSesion()
-              Navigator.pushReplacement(
+            onPressed: () async {
+              await context.read<AuthViewModel>().cerrarSesion();
+              if (!context.mounted) return;
+              // Vuelve al inicio de sesión sin dejar el perfil en el historial.
+              Navigator.pushNamedAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const LoginView()),
+                Rutas.login,
+                (ruta) => false,
               );
             },
             child: const Text(
               'Cerrar sesión',
               style: TextStyle(
-                color: Color(0xFFEF4444),
+                color: ColoresSaman.rojo,
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
@@ -175,7 +189,7 @@ class PerfilView extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF64748B), size: 22),
+          Icon(icon, color: ColoresSaman.textoSecundario, size: 22),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -185,7 +199,7 @@ class PerfilView extends StatelessWidget {
                   label,
                   style: const TextStyle(
                     fontSize: 11,
-                    color: Color(0xFF64748B),
+                    color: ColoresSaman.textoSecundario,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -194,7 +208,7 @@ class PerfilView extends StatelessWidget {
                   value,
                   style: const TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF1E293B),
+                    color: ColoresSaman.azulOscuro,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -206,18 +220,40 @@ class PerfilView extends StatelessWidget {
     );
   }
 
-  Widget _buildPerfilDemo({
+  /// Mientras el perfil carga muestra un indicador; si no existe, un aviso.
+  Widget _buildSinPerfil(PerfilViewModel perfilViewModel) {
+    if (perfilViewModel.estado == PerfilEstado.cargando) {
+      return const Center(
+        child: CircularProgressIndicator(color: ColoresSaman.naranja),
+      );
+    }
+    return Text(
+      perfilViewModel.error ?? 'No se encontró tu perfil.',
+      style: const TextStyle(color: ColoresSaman.textoSecundario),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  /// Muestra los datos que corresponden a cada actor.
+  Widget _buildPerfil({
     required BuildContext context,
+    required Persona persona,
     required Color orangeUnimet,
     required Color greyBg,
   }) {
+    final (rol, dato1, dato2) = switch (persona) {
+      Estudiante e => ('Estudiante', e.carnet, e.carrera),
+      Entrenador e => ('Entrenador', e.cedula, e.especialidad),
+      Administrador a => ('Administrador', a.cedula, a.cargo),
+      _ => ('Usuario', persona.cedula, ''),
+    };
     return _buildPerfilContent(
       context: context,
-      nombre: 'Juan Linarez',
-      correo: 'juan.linarez@correo.unimet.edu.ve',
-      carnet: '20231110245',
-      carrera: 'Ing. de Sistemas',
-      rol: 'Estudiante',
+      nombre: persona.nombreCompleto,
+      correo: persona.correo,
+      carnet: dato1,
+      carrera: dato2,
+      rol: rol,
       orangeUnimet: orangeUnimet,
       greyBg: greyBg,
     );

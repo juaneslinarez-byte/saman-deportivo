@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'registro_view.dart';
-import 'recuperar_password_vista.dart';
-import '../perfil/perfil_view.dart';
+import '../../core/colores.dart';
+import '../../core/rutas.dart';
+import '../../core/validadores.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -24,28 +26,41 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
-  void _iniciarSesion() async {
+  Future<void> _iniciarSesion() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _cargando = true);
-    await Future.delayed(const Duration(milliseconds: 600));
+    final authViewModel = context.read<AuthViewModel>();
+    final exito = await authViewModel.iniciarSesion(
+      correo: _emailController.text.trim(),
+      contrasena: _passwordController.text,
+    );
 
     if (!mounted) return;
     setState(() => _cargando = false);
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const PerfilView()),
-    );
+    if (exito) {
+      // Al entrar se borra el historial: «atrás» no vuelve al formulario.
+      Navigator.pushNamedAndRemoveUntil(context, Rutas.perfil, (ruta) => false);
+    } else {
+      // El ViewModel ya trae el mensaje en español (credenciales
+      // incorrectas, cuenta deshabilitada, sin conexión...).
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authViewModel.error ?? 'No se pudo iniciar sesión.'),
+          backgroundColor: ColoresSaman.rojo,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color orangeUnimet = Color(0xFFF37021);
-    const Color greyBg = Color(0xFFF1F2F4);
+    const Color orangeUnimet = ColoresSaman.naranja;
+    const Color greyBg = ColoresSaman.gris;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: ColoresSaman.fondo,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -53,7 +68,7 @@ class _LoginViewState extends State<LoginView> {
             constraints: const BoxConstraints(maxWidth: 440),
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: ColoresSaman.blanco,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -73,7 +88,7 @@ class _LoginViewState extends State<LoginView> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: ColoresSaman.azulOscuro,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -81,7 +96,10 @@ class _LoginViewState extends State<LoginView> {
 
                   const Text(
                     'Ingresa tu cuenta institucional',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: ColoresSaman.textoSecundario,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -93,7 +111,7 @@ class _LoginViewState extends State<LoginView> {
                     decoration: InputDecoration(
                       hintText: 'usuario@correo.unimet.edu.ve',
                       hintStyle: const TextStyle(
-                        color: Color(0xFFA0AEC0),
+                        color: ColoresSaman.textoTenue,
                         fontSize: 14,
                       ),
                       filled: true,
@@ -107,15 +125,7 @@ class _LoginViewState extends State<LoginView> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'Ingresa tu correo';
-                      }
-                      if (!val.trim().endsWith('@correo.unimet.edu.ve')) {
-                        return 'Debe terminar en @correo.unimet.edu.ve';
-                      }
-                      return null;
-                    },
+                    validator: Validadores.correoInstitucional,
                   ),
                   const SizedBox(height: 12),
 
@@ -126,7 +136,7 @@ class _LoginViewState extends State<LoginView> {
                     decoration: InputDecoration(
                       hintText: 'Contraseña',
                       hintStyle: const TextStyle(
-                        color: Color(0xFFA0AEC0),
+                        color: ColoresSaman.textoTenue,
                         fontSize: 14,
                       ),
                       filled: true,
@@ -154,7 +164,7 @@ class _LoginViewState extends State<LoginView> {
                       : ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: orangeUnimet,
-                            foregroundColor: Colors.white,
+                            foregroundColor: ColoresSaman.blanco,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -175,12 +185,7 @@ class _LoginViewState extends State<LoginView> {
                   Center(
                     child: TextButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RecuperarPasswordView(),
-                          ),
-                        );
+                        Navigator.pushNamed(context, Rutas.recuperar);
                       },
                       child: const Text(
                         '¿Olvidaste tu contraseña?',
@@ -199,18 +204,13 @@ class _LoginViewState extends State<LoginView> {
                       const Text(
                         '¿No tienes cuenta? ',
                         style: TextStyle(
-                          color: Color(0xFF64748B),
+                          color: ColoresSaman.textoSecundario,
                           fontSize: 13,
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RegistroView(),
-                            ),
-                          );
+                          Navigator.pushNamed(context, Rutas.registro);
                         },
                         child: const Text(
                           'Regístrate',
@@ -231,7 +231,7 @@ class _LoginViewState extends State<LoginView> {
                       child: const Text(
                         '← Volver al inicio',
                         style: TextStyle(
-                          color: Color(0xFF94A3B8),
+                          color: ColoresSaman.textoDiscreto,
                           fontSize: 12,
                         ),
                       ),

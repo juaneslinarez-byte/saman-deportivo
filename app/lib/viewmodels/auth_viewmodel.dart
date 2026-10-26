@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:saman_deportivo/modelos/modelos.dart';
 import 'package:saman_deportivo/repositorios/repositorios.dart';
@@ -9,13 +11,29 @@ class AuthViewModel extends ChangeNotifier {
   bool _cargando = false;
   String? _error;
 
+  // Patrón Observador: escucha a Firebase Authentication y avisa a las
+  // vistas cada vez que la sesión empieza o termina.
+  StreamSubscription<String?>? _sesionSubscription;
+  String? _idUsuarioActual;
+
   AuthViewModel({
     required this.authRepository,
     required this.usuarioRepository,
-  });
+  }) {
+    _sesionSubscription = authRepository.observarSesion().listen((id) {
+      _idUsuarioActual = id;
+      notifyListeners();
+    });
+  }
 
   bool get cargando => _cargando;
   String? get error => _error;
+
+  /// Id del usuario con sesión iniciada, o null si no hay sesión.
+  String? get idUsuarioActual => _idUsuarioActual;
+
+  /// Indica si hay un usuario con sesión iniciada.
+  bool get estaAutenticado => _idUsuarioActual != null;
 
   Future<bool> iniciarSesion({
     required String correo,
@@ -110,5 +128,11 @@ class AuthViewModel extends ChangeNotifier {
       _cargando = false;
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _sesionSubscription?.cancel();
+    super.dispose();
   }
 }
