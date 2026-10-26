@@ -1,0 +1,39 @@
+@startuml
+!include estilo.iuml
+skinparam linetype polyline
+
+abstract class ChangeNotifier <<sujeto (Flutter)>> {
+  + addListener(oyente)
+  + removeListener(oyente)
+  + notifyListeners()
+}
+
+class "Stream<List<Deporte>>" as Flujo <<sujeto (Firestore)>> {
+  + listen(alRecibir): StreamSubscription
+}
+
+class DeporteRepositoryFirebase {
+  + observarDeportes(): Stream<List<Deporte>>
+}
+
+class CatalogoViewModel <<observador del flujo>> {
+  - deportes: List<Deporte>
+  - suscripcion: StreamSubscription
+  - alRecibir(lista: List<Deporte>)
+}
+
+class CatalogoView <<observador del ViewModel>> {
+  + build(context): Widget
+}
+
+DeporteRepositoryFirebase ..> Flujo : snapshots()
+CatalogoViewModel ..> Flujo : listen()
+ChangeNotifier <|-- CatalogoViewModel
+CatalogoView ..> CatalogoViewModel : context.watch()
+
+note bottom of CatalogoViewModel
+  1. Firestore emite la lista cuando cambia un cupo.
+  2. alRecibir() guarda la lista y llama a notifyListeners().
+  3. CatalogoView se redibuja con los cupos nuevos.
+end note
+@enduml

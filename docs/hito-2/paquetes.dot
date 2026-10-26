@@ -1,0 +1,27 @@
+digraph P {
+  graph [rankdir=TB, fontname="Inter", fontsize=12, nodesep=0.5, ranksep=0.55, pad=0.25, bgcolor=white, newrank=true];
+  node  [shape=tab, style=filled, fillcolor="#F2F2F2", color=black, fontname="Inter", fontsize=12, margin="0.18,0.08"];
+  edge  [style=dashed, arrowhead=vee, arrowsize=0.8, color=black, fontname="Inter", fontsize=10, label="«use»"];
+
+  subgraph cluster_lib {
+    label="samán_deportivo (lib)"; labeljust=l; style="rounded"; color=black; fontsize=13;
+    vistas [label=<<B>vistas</B><BR/><I>«Vista»</I><BR/><FONT POINT-SIZE="10">auth · perfil · estudiante · entrenador · administrador</FONT>>];
+    core   [label=<<B>core</B><BR/><FONT POINT-SIZE="10">rutas · tema · validadores</FONT>>];
+    vm     [label=<<B>viewmodels</B><BR/><I>«ViewModel»</I><BR/><FONT POINT-SIZE="10">AuthViewModel · PerfilViewModel · CatalogoViewModel …</FONT>>];
+    rep    [label=<<B>repositorios</B><BR/><I>«Modelo»</I><BR/><FONT POINT-SIZE="10">AuthRepository · UsuarioRepository · DeporteRepository<BR/>InscripcionRepository · PagoRepository</FONT>>];
+    mod    [label=<<B>modelos</B><BR/><I>«Modelo»</I><BR/><FONT POINT-SIZE="10">Persona · Estudiante · Entrenador · Administrador<BR/>Deporte · Sesion · Inscripcion · Asistencia · Pago</FONT>>];
+  }
+  subgraph cluster_ext {
+    label="Dependencias externas"; labeljust=r; style="rounded,dashed"; color=black; fontsize=13;
+    prov [label="provider"];
+    fa   [label="firebase_auth"];
+    cf   [label="cloud_firestore"];
+  }
+  vistas -> vm; vistas -> core; vistas -> prov;
+  vm -> rep; vm -> mod;
+  rep -> mod;
+  rep -> fa; rep -> cf;
+  {rank=same; vistas; core}
+  {rank=same; rep; mod}
+  {rank=same; prov; fa; cf}
+}
