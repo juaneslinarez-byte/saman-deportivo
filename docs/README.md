@@ -30,7 +30,16 @@ Artefactos del proyecto organizados por hito de OpenUP.
 
 Los archivos .dot, .puml y .md (Mermaid) de cada diagrama están junto a su imagen en [hito-2/](hito-2/).
 
-Pendiente: módulo de autenticación.
+Módulo de autenticación (registro, inicio y cierre de sesión, recuperación de contraseña y perfil), en el código de la aplicación:
+
+| Parte | Ubicación |
+| --- | --- |
+| Repositorios con Firebase | [auth_repository_firebase.dart](../app/lib/repositorios/auth_repository_firebase.dart) y [usuario_repository_firebase.dart](../app/lib/repositorios/usuario_repository_firebase.dart) |
+| ViewModels | [app/lib/viewmodels/](../app/lib/viewmodels/) |
+| Pantallas | [app/lib/vistas/auth/](../app/lib/vistas/auth/) y [app/lib/vistas/perfil/](../app/lib/vistas/perfil/) |
+| Tema, rutas y validadores | [app/lib/core/](../app/lib/core/) |
+| Reglas de seguridad de Firestore | [app/firestore.rules](../app/firestore.rules), publicadas en el proyecto `proyecto-saman-deportivo` |
+| Pruebas | [app/test/](../app/test/): 77 pruebas que se ejecutan en cada pull request |
 
 ## Hito 3: Construcción
 
