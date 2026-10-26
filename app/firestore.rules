@@ -57,12 +57,12 @@ service cloud.firestore {
     // Resto de colecciones (deportes, sesiones, inscripciones,
     // asistencias y pagos).
     // ---------------------------------------------------------------
-    // TEMPORAL hasta el Hito 3: cualquier usuario con sesión iniciada
-    // puede leer y escribir. Ya no quedan abiertas para todo internet
-    // como en el modo de prueba. Las reglas definitivas de cada una se
-    // escriben en el Hito 3, junto con sus repositorios.
+    // Hasta el Hito 3, el catálogo solo se lee y el resto de las colecciones queda cerrado.
     match /{coleccion}/{id} {
-      allow read, write: if coleccion != 'usuarios' && conSesion();
+      // Catálogo: lo lee cualquier usuario con sesión (docs/modelo-de-datos.md).
+      allow read: if coleccion in ['deportes', 'sesiones'] && conSesion();
+      // El resto se abre en el Hito 3, con sus propias reglas.
+      allow write: if false;
     }
   }
 }
