@@ -1,8 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+import 'core/rutas.dart';
+import 'core/tema.dart';
 import 'firebase_options.dart';
 import 'vistas/auth/login_view.dart';
+import 'vistas/auth/recuperar_password_vista.dart';
 import 'vistas/auth/registro_view.dart';
 import 'vistas/perfil/perfil_view.dart';
 
@@ -21,40 +24,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Samán Deportivo',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.tema,
-      initialRoute: '/login',
+      theme: TemaSaman.claro,
+      initialRoute: Rutas.inicial,
       routes: {
-        '/login': (context) => const LoginView(),
-        '/registro': (context) => const RegistroView(),
-        '/perfil': (context) => const PerfilView(),
+        Rutas.login: (context) => const LoginView(),
+        Rutas.registro: (context) => const RegistroView(),
+        Rutas.recuperar: (context) => const RecuperarPasswordView(),
+        Rutas.perfil: (context) => const PerfilView(),
       },
-    );
-  }
-}
-
-class AppTheme {
-  static const Color colorPrimario = Color(0xFFF37021);
-
-  static ThemeData get tema {
-    return ThemeData(
-      primaryColor: colorPrimario,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: colorPrimario,
-        primary: colorPrimario,
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorPrimario,
-          foregroundColor: Colors.white,
-        ),
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: colorPrimario,
-        foregroundColor: Colors.white,
-      ),
     );
   }
 }
