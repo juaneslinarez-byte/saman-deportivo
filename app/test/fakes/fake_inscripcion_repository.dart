@@ -133,18 +133,8 @@ class FakeInscripcionRepository implements InscripcionRepository {
         .toList();
   }
 
-  Deporte _conCupos(Deporte d, int cupos) {
-    return Deporte(
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      lugar: d.lugar,
-      cupoMaximo: d.cupoMaximo,
-      cuposDisponibles: cupos,
-      idEntrenador: d.idEntrenador,
-      visible: d.visible,
-    );
-  }
+  Deporte _conCupos(Deporte d, int cupos) =>
+      d.copyWith(cuposDisponibles: cupos);
 
   void _verificarFallo() {
     if (debeFallar) throw Exception('Error de base de datos');

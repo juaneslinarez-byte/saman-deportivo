@@ -60,16 +60,7 @@ class FakeDeporteRepository implements DeporteRepository {
   Future<String> crear(Deporte deporte) async {
     _verificarFallo();
     final id = 'd${++_contador}';
-    _deportes[id] = Deporte(
-      id: id,
-      nombre: deporte.nombre,
-      descripcion: deporte.descripcion,
-      lugar: deporte.lugar,
-      cupoMaximo: deporte.cupoMaximo,
-      cuposDisponibles: deporte.cuposDisponibles,
-      idEntrenador: deporte.idEntrenador,
-      visible: deporte.visible,
-    );
+    _deportes[id] = Deporte.fromMap(id, deporte.toMap());
     _cambios.add(null);
     return id;
   }
