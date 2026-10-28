@@ -6,6 +6,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ---------------------------------------------------------------
+    // Funciones de apoyo
+    // ---------------------------------------------------------------
+
     // ¿Hay alguien con sesión iniciada?
     function conSesion() {
       return request.auth != null;
@@ -16,11 +20,28 @@ service cloud.firestore {
       return conSesion() && request.auth.uid == uid;
     }
 
+    // Perfil del usuario con sesión.
+    function miPerfil() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
     // ¿El usuario con sesión es administrador? Lo lee de su propio perfil.
     function esAdministrador() {
+      return conSesion() && miPerfil().actor == 'administrador';
+    }
+
+    // ¿El usuario con sesión es entrenador?
+    function esEntrenador() {
+      return conSesion() && miPerfil().actor == 'entrenador';
+    }
+
+    // ¿El usuario con sesión es un estudiante solvente y habilitado?
+    // Es la condición para inscribirse (RF-SIS-02).
+    function esEstudianteSolvente() {
       return conSesion()
-        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid))
-             .data.actor == 'administrador';
+        && miPerfil().actor == 'estudiante'
+        && miPerfil().solvente == true
+        && miPerfil().habilitado == true;
     }
 
     // ¿La escritura cambia alguno de estos campos?
@@ -29,12 +50,37 @@ service cloud.firestore {
         .affectedKeys().hasAny(campos);
     }
 
+    // ¿La escritura cambia solo estos campos?
+    function cambiaSolo(campos) {
+      return request.resource.data.diff(resource.data)
+        .affectedKeys().hasOnly(campos);
+    }
+
+    // Deporte antes y después de la operación. getAfter() ve el resultado
+    // de toda la escritura en lote, así se comprueba que la inscripción y
+    // el cupo se mueven juntos.
+    function deporteAntes(idDeporte) {
+      return get(/databases/$(database)/documents/deportes/$(idDeporte)).data;
+    }
+
+    function deporteDespues(idDeporte) {
+      return getAfter(/databases/$(database)/documents/deportes/$(idDeporte)).data;
+    }
+
+    // Ruta de la inscripción de un estudiante en un deporte. Su id es
+    // siempre idEstudiante_idDeporte (Inscripcion.idPara en el código).
+    function rutaInscripcion(idEstudiante, idDeporte) {
+      return /databases/$(database)/documents/inscripciones/$(idEstudiante + '_' + idDeporte);
+    }
+
     // ---------------------------------------------------------------
     // Perfiles: usuarios/{uid}
     // ---------------------------------------------------------------
     match /usuarios/{uid} {
-      // Cada usuario lee su propio perfil; el administrador lee todos.
-      allow read: if esDueno(uid) || esAdministrador();
+      // Cada usuario lee su propio perfil; el administrador lee todos. El
+      // entrenador lee los perfiles para ver la solvencia y el estado de
+      // sus inscritos (RF-ENT-05).
+      allow read: if esDueno(uid) || esAdministrador() || esEntrenador();
 
       // Al registrarse, cada uno crea solo su propio perfil, y siempre
       // como estudiante habilitado y no solvente. Así nadie puede
@@ -49,20 +95,152 @@ service cloud.firestore {
       allow update: if esDueno(uid)
         && !cambiaAlguno(['actor', 'solvente', 'habilitado']);
 
-      // El administrador crea, edita y borra cualquier perfil.
+      // El administrador crea, edita y borra cualquier perfil: habilita o
+      // deshabilita cuentas, marca la solvencia y convierte en entrenador a
+      // quien se registró como estudiante (RF-ADM-08, RF-SIS-07).
       allow create, update, delete: if esAdministrador();
     }
 
     // ---------------------------------------------------------------
-    // Resto de colecciones (deportes, sesiones, inscripciones,
-    // asistencias y pagos).
+    // Catálogo: deportes/{idDeporte} y sesiones/{idSesion}
     // ---------------------------------------------------------------
-    // Hasta el Hito 3, el catálogo solo se lee y el resto de las colecciones queda cerrado.
-    match /{coleccion}/{id} {
-      // Catálogo: lo lee cualquier usuario con sesión (docs/modelo-de-datos.md).
-      allow read: if coleccion in ['deportes', 'sesiones'] && conSesion();
-      // El resto se abre en el Hito 3, con sus propias reglas.
-      allow write: if false;
+    match /deportes/{idDeporte} {
+      // Lo lee cualquier usuario con sesión (RF-EST-02).
+      allow read: if conSesion();
+
+      // Solo el administrador crea, edita y elimina deportes, asigna
+      // entrenadores y fija los cupos (RF-ADM-01 a RF-ADM-03).
+      allow create, delete: if esAdministrador();
+
+      // El estudiante solo puede mover el cupo en uno, y únicamente en la
+      // misma operación en que su inscripción cambia de estado: se
+      // descuenta si pasa a activa y se devuelve si pasa a cancelada
+      // (RNF-07). El cupo nunca baja de 0 ni pasa del cupo máximo.
+      allow update: if esAdministrador() || (
+        conSesion()
+        && cambiaSolo(['cuposDisponibles'])
+        && (
+          (request.resource.data.cuposDisponibles == resource.data.cuposDisponibles - 1
+            && resource.data.cuposDisponibles > 0
+            && getAfter(rutaInscripcion(request.auth.uid, idDeporte)).data.estado == 'activa'
+            && (!exists(rutaInscripcion(request.auth.uid, idDeporte))
+                || get(rutaInscripcion(request.auth.uid, idDeporte)).data.estado == 'cancelada'))
+          ||
+          (request.resource.data.cuposDisponibles == resource.data.cuposDisponibles + 1
+            && request.resource.data.cuposDisponibles <= resource.data.cupoMaximo
+            && getAfter(rutaInscripcion(request.auth.uid, idDeporte)).data.estado == 'cancelada'
+            && get(rutaInscripcion(request.auth.uid, idDeporte)).data.estado == 'activa')
+        )
+      );
     }
+
+    match /sesiones/{idSesion} {
+      // El horario lo lee cualquier usuario con sesión y solo lo configura
+      // el administrador (RF-ADM-03).
+      allow read: if conSesion();
+      allow write: if esAdministrador();
+    }
+
+    // ---------------------------------------------------------------
+    // Inscripciones: inscripciones/{idEstudiante_idDeporte}
+    // ---------------------------------------------------------------
+    match /inscripciones/{idInscripcion} {
+      // El estudiante lee las suyas; el entrenador y el administrador, las
+      // nóminas (RF-ENT-02, RF-ADM-04).
+      allow read: if esAdministrador() || esEntrenador()
+        || (conSesion() && resource.data.idEstudiante == request.auth.uid);
+
+      // Inscribirse: el propio estudiante, solvente y habilitado, con su
+      // nombre y carnet, y descontando un cupo en la misma operación. Como
+      // el id es idEstudiante_idDeporte, no puede inscribirse dos veces en
+      // el mismo deporte (RF-SIS-01, RF-SIS-02, RF-SIS-04, RNF-07).
+      allow create: if esEstudianteSolvente()
+        && idInscripcion == request.auth.uid + '_' + request.resource.data.idDeporte
+        && request.resource.data.idEstudiante == request.auth.uid
+        && request.resource.data.estado == 'activa'
+        && request.resource.data.nombreEstudiante == miPerfil().nombre + ' ' + miPerfil().apellido
+        && request.resource.data.carnetEstudiante == miPerfil().carnet
+        && deporteAntes(request.resource.data.idDeporte).cuposDisponibles > 0
+        && deporteDespues(request.resource.data.idDeporte).cuposDisponibles
+             == deporteAntes(request.resource.data.idDeporte).cuposDisponibles - 1;
+
+      // Cancelar, o volver a inscribirse después de cancelar: el propio
+      // estudiante solo cambia el estado (y la fecha al volver), y el cupo
+      // se devuelve o se descuenta en la misma operación.
+      allow update: if esAdministrador() || (
+        conSesion()
+        && resource.data.idEstudiante == request.auth.uid
+        && cambiaSolo(['estado', 'fecha'])
+        && (
+          (resource.data.estado == 'activa'
+            && request.resource.data.estado == 'cancelada'
+            && deporteDespues(resource.data.idDeporte).cuposDisponibles
+                 == deporteAntes(resource.data.idDeporte).cuposDisponibles + 1)
+          ||
+          (resource.data.estado == 'cancelada'
+            && request.resource.data.estado == 'activa'
+            && esEstudianteSolvente()
+            && deporteAntes(resource.data.idDeporte).cuposDisponibles > 0
+            && deporteDespues(resource.data.idDeporte).cuposDisponibles
+                 == deporteAntes(resource.data.idDeporte).cuposDisponibles - 1)
+        )
+      );
+
+      // Las inscripciones no se borran: quedan en el historial.
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------
+    // Asistencias: asistencias/{idInscripcion_idSesion_AAAAMMDD}
+    // ---------------------------------------------------------------
+    match /asistencias/{idAsistencia} {
+      // El estudiante ve su historial; el entrenador y el administrador, el
+      // de las disciplinas (RF-EST-06, RF-ENT-04).
+      allow read: if esAdministrador() || esEntrenador()
+        || (conSesion() && resource.data.idEstudiante == request.auth.uid);
+
+      // Solo el entrenador asignado al deporte registra o corrige la
+      // asistencia (RF-ENT-03), y no puede pasarla a otro deporte.
+      allow create: if esAdministrador() || (
+        esEntrenador()
+        && deporteAntes(request.resource.data.idDeporte).idEntrenador == request.auth.uid
+        && request.resource.data.presente is bool
+      );
+      allow update: if esAdministrador() || (
+        esEntrenador()
+        && deporteAntes(resource.data.idDeporte).idEntrenador == request.auth.uid
+        && request.resource.data.idDeporte == resource.data.idDeporte
+        && request.resource.data.presente is bool
+      );
+      allow delete: if esAdministrador();
+    }
+
+    // ---------------------------------------------------------------
+    // Pagos de solvencia: pagos/{idPago}
+    // ---------------------------------------------------------------
+    match /pagos/{idPago} {
+      // El estudiante ve los suyos; el administrador, todos.
+      allow read: if esAdministrador()
+        || (conSesion() && resource.data.idEstudiante == request.auth.uid);
+
+      // El estudiante registra su propio pago, siempre como pendiente.
+      allow create: if conSesion()
+        && request.resource.data.idEstudiante == request.auth.uid
+        && request.resource.data.estado == 'pendiente'
+        && request.resource.data.monto is number
+        && request.resource.data.monto > 0;
+
+      // Solo el administrador aprueba o rechaza un pago pendiente
+      // (RF-ADM-05); la solvencia la marca en el perfil (RF-SIS-07).
+      allow update: if esAdministrador()
+        && resource.data.estado == 'pendiente'
+        && request.resource.data.estado in ['aprobado', 'rechazado']
+        && cambiaSolo(['estado']);
+
+      // Los pagos no se borran.
+      allow delete: if false;
+    }
+
+    // Cualquier otra colección queda cerrada.
   }
 }
