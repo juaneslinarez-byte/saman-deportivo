@@ -2,6 +2,7 @@
 /// `import 'package:saman_deportivo/repositorios/repositorios.dart';`
 library;
 
+export 'asistencia_repository.dart';
 export 'auth_repository.dart';
 export 'deporte_repository.dart';
 export 'inscripcion_repository.dart';
