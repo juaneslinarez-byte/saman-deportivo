@@ -5,6 +5,10 @@ abstract class InscripcionRepository {
   /// Inscribe al estudiante y descuenta un cupo en una sola operación, de
   /// modo que dos inscripciones simultáneas nunca superen el cupo (RNF-07).
   ///
+  /// La inscripción se guarda con el id [Inscripcion.idPara] y con el nombre
+  /// y el carnet del estudiante. Si el estudiante tenía una inscripción
+  /// cancelada en ese deporte, se vuelve a activar en lugar de crear otra.
+  ///
   /// Lanza [InscripcionRechazada] si no hay cupo, si el estudiante ya está
   /// inscrito o si no está solvente.
   Future<Inscripcion> inscribir(Estudiante estudiante, Deporte deporte);
