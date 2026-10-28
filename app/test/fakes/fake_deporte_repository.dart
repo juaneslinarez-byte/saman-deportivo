@@ -48,12 +48,48 @@ class FakeDeporteRepository implements DeporteRepository {
   }
 
   @override
+  Stream<List<Deporte>> observarPorEntrenador(String idEntrenador) async* {
+    _verificarFallo();
+    yield _delEntrenador(idEntrenador);
+    await for (final _ in _cambios.stream) {
+      yield _delEntrenador(idEntrenador);
+    }
+  }
+
+  @override
   Stream<List<Sesion>> observarSesiones(String idDeporte) async* {
     _verificarFallo();
     yield _sesionesDe(idDeporte);
     await for (final _ in _cambios.stream) {
       yield _sesionesDe(idDeporte);
     }
+  }
+
+  @override
+  Future<String> crearSesion(Sesion sesion) async {
+    _verificarFallo();
+    final id = 's${++_contador}';
+    _sesiones.add(Sesion.fromMap(id, sesion.toMap()));
+    _cambios.add(null);
+    return id;
+  }
+
+  @override
+  Future<void> actualizarSesion(Sesion sesion) async {
+    _verificarFallo();
+    final indice = _sesiones.indexWhere((s) => s.id == sesion.id);
+    if (indice < 0) {
+      throw StateError('No existe la sesion ${sesion.id}');
+    }
+    _sesiones[indice] = sesion;
+    _cambios.add(null);
+  }
+
+  @override
+  Future<void> eliminarSesion(String idSesion) async {
+    _verificarFallo();
+    _sesiones.removeWhere((s) => s.id == idSesion);
+    _cambios.add(null);
   }
 
   @override
@@ -93,6 +129,12 @@ class FakeDeporteRepository implements DeporteRepository {
 
   List<Deporte> _listar(bool soloVisibles) {
     return _deportes.values.where((d) => !soloVisibles || d.visible).toList();
+  }
+
+  List<Deporte> _delEntrenador(String idEntrenador) {
+    return _deportes.values
+        .where((d) => d.idEntrenador == idEntrenador)
+        .toList();
   }
 
   List<Sesion> _sesionesDe(String idDeporte) {
