@@ -40,6 +40,12 @@ class UsuarioRepositoryFirebase implements UsuarioRepository {
   }
 
   @override
+  Future<void> actualizarComoAdministrador(Persona persona) =>
+      // set() reemplaza el documento: al convertir a un estudiante en
+      // entrenador no quedan los campos que ya no aplican (carnet, carrera…).
+      _usuarios.doc(persona.id).set(persona.toMap());
+
+  @override
   Future<List<Persona>> listar({Actor? actor}) async {
     final consulta = actor == null
         ? _usuarios
