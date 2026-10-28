@@ -6,6 +6,8 @@ void main() {
 
   Map<String, dynamic> datosAsistencia() => {
     'idInscripcion': 'i1',
+    'idEstudiante': 'e1',
+    'idDeporte': 'd1',
     'idSesion': 's1',
     'fecha': fecha,
     'presente': true,
@@ -15,6 +17,8 @@ void main() {
     test('fromMap lee un registro presente', () {
       final a = Asistencia.fromMap('a1', datosAsistencia());
       expect(a.idInscripcion, 'i1');
+      expect(a.idEstudiante, 'e1');
+      expect(a.idDeporte, 'd1');
       expect(a.idSesion, 's1');
       expect(a.fecha, fecha);
       expect(a.presente, isTrue);
@@ -48,9 +52,18 @@ void main() {
     test('toMap conserva todos los datos', () {
       final mapa = Asistencia.fromMap('a1', datosAsistencia()).toMap();
       expect(mapa['idInscripcion'], 'i1');
+      expect(mapa['idEstudiante'], 'e1');
+      expect(mapa['idDeporte'], 'd1');
       expect(mapa['idSesion'], 's1');
       expect(mapa['fecha'], fecha);
       expect(mapa['presente'], true);
+    });
+
+    test('idPara usa la inscripción, la sesión y el día', () {
+      expect(
+        Asistencia.idPara('i1', 's1', DateTime(2026, 11, 3, 16, 30)),
+        'i1_s1_20261103',
+      );
     });
   });
 }

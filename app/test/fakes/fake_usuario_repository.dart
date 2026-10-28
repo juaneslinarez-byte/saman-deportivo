@@ -99,6 +99,16 @@ class FakeUsuarioRepository implements UsuarioRepository {
   }
 
   @override
+  Future<void> actualizarComoAdministrador(Persona persona) async {
+    _verificarFallo();
+    if (!_perfiles.containsKey(persona.id)) {
+      throw StateError('No existe el perfil ${persona.id}');
+    }
+    _perfiles[persona.id] = persona;
+    _cambios.add(MapEntry(persona.id, persona));
+  }
+
+  @override
   Future<List<Persona>> listar({Actor? actor}) async {
     _verificarFallo();
     return _perfiles.values

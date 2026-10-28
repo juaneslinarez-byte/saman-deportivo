@@ -4,6 +4,7 @@ import 'package:saman_deportivo/modelos/modelos.dart';
 Deporte crearDeporte({int cupoMaximo = 20, int disponibles = 20}) {
   return Deporte(
     id: 'd1',
+    codigo: 'BAL-01',
     nombre: 'Baloncesto',
     descripcion: 'Entrenamiento general',
     lugar: 'Cancha 1',
@@ -38,6 +39,7 @@ void main() {
 
     test('fromMap lee todos los campos', () {
       final d = Deporte.fromMap('d1', {
+        'codigo': 'TEN-01',
         'nombre': 'Tenis',
         'descripcion': 'Nivel basico',
         'lugar': 'Cancha 2',
@@ -46,6 +48,7 @@ void main() {
         'idEntrenador': 't1',
         'visible': true,
       });
+      expect(d.codigo, 'TEN-01');
       expect(d.nombre, 'Tenis');
       expect(d.cupoMaximo, 10);
       expect(d.cuposDisponibles, 4);
@@ -59,6 +62,7 @@ void main() {
         'cupoMaximo': 10,
         'cuposDisponibles': 10,
       });
+      expect(d.codigo, '');
       expect(d.descripcion, '');
       expect(d.lugar, '');
       expect(d.idEntrenador, isNull);
@@ -74,11 +78,31 @@ void main() {
 
     test('toMap contiene los datos del deporte', () {
       final mapa = crearDeporte(cupoMaximo: 20, disponibles: 18).toMap();
+      expect(mapa['codigo'], 'BAL-01');
       expect(mapa['nombre'], 'Baloncesto');
       expect(mapa['cupoMaximo'], 20);
       expect(mapa['cuposDisponibles'], 18);
       expect(mapa['idEntrenador'], isNull);
       expect(mapa['visible'], false);
+    });
+
+    test('copyWith cambia solo los campos indicados', () {
+      final d = crearDeporte().copyWith(
+        cuposDisponibles: 19,
+        idEntrenador: 't1',
+      );
+      expect(d.id, 'd1');
+      expect(d.codigo, 'BAL-01');
+      expect(d.cuposDisponibles, 19);
+      expect(d.idEntrenador, 't1');
+      expect(d.cupoMaximo, 20);
+    });
+
+    test('copyWith con quitarEntrenador deja el deporte sin entrenador', () {
+      final d = crearDeporte()
+          .copyWith(idEntrenador: 't1')
+          .copyWith(quitarEntrenador: true);
+      expect(d.idEntrenador, isNull);
     });
   });
 }

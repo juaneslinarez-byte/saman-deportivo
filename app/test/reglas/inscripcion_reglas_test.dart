@@ -34,6 +34,7 @@ void main() {
 
   Deporte futbol({int cupos = 2}) => Deporte(
     id: 'futbol',
+    codigo: 'FUT-01',
     nombre: 'Fútbol',
     descripcion: 'Entrenamiento de fútbol sala',
     lugar: 'Cancha techada',

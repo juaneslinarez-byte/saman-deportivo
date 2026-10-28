@@ -17,8 +17,6 @@ class FakeInscripcionRepository implements InscripcionRepository {
   final Map<String, Inscripcion> _inscripciones = {};
   final StreamController<void> _cambios = StreamController<void>.broadcast();
 
-  int _contador = 0;
-
   /// Si es true, las operaciones fallan como si la base de datos no respondiera.
   bool debeFallar = false;
 
@@ -59,8 +57,10 @@ class FakeInscripcionRepository implements InscripcionRepository {
     }
 
     final inscripcion = Inscripcion(
-      id: 'i${++_contador}',
+      id: Inscripcion.idPara(estudiante.id, deporte.id),
       idEstudiante: estudiante.id,
+      nombreEstudiante: estudiante.nombreCompleto,
+      carnetEstudiante: estudiante.carnet,
       idDeporte: deporte.id,
       fecha: DateTime.now(),
     );
@@ -85,12 +85,8 @@ class FakeInscripcionRepository implements InscripcionRepository {
     if (!guardada.estaActiva) return;
 
     // No se borra: queda en el historial como cancelada.
-    _inscripciones[guardada.id] = Inscripcion(
-      id: guardada.id,
-      idEstudiante: guardada.idEstudiante,
-      idDeporte: guardada.idDeporte,
-      fecha: guardada.fecha,
-      estado: EstadoInscripcion.cancelada,
+    _inscripciones[guardada.id] = guardada.conEstado(
+      EstadoInscripcion.cancelada,
     );
 
     final deporte = await _deportes.obtener(guardada.idDeporte);
@@ -133,18 +129,8 @@ class FakeInscripcionRepository implements InscripcionRepository {
         .toList();
   }
 
-  Deporte _conCupos(Deporte d, int cupos) {
-    return Deporte(
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      lugar: d.lugar,
-      cupoMaximo: d.cupoMaximo,
-      cuposDisponibles: cupos,
-      idEntrenador: d.idEntrenador,
-      visible: d.visible,
-    );
-  }
+  Deporte _conCupos(Deporte d, int cupos) =>
+      d.copyWith(cuposDisponibles: cupos);
 
   void _verificarFallo() {
     if (debeFallar) throw Exception('Error de base de datos');

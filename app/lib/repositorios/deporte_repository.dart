@@ -8,7 +8,18 @@ abstract class DeporteRepository {
 
   Future<Deporte?> obtener(String id);
 
+  /// Deportes asignados a un entrenador, para su nómina y su asistencia
+  /// (RF-ENT-01).
+  Stream<List<Deporte>> observarPorEntrenador(String idEntrenador);
+
   Stream<List<Sesion>> observarSesiones(String idDeporte);
+
+  /// Agrega una sesión al horario de un deporte y devuelve su id (RF-ADM-03).
+  Future<String> crearSesion(Sesion sesion);
+
+  Future<void> actualizarSesion(Sesion sesion);
+
+  Future<void> eliminarSesion(String idSesion);
 
   /// Crea el deporte y devuelve su id (RF-ADM-01).
   Future<String> crear(Deporte deporte);
