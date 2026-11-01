@@ -2,6 +2,7 @@
 class Deporte {
   const Deporte({
     required this.id,
+    required this.codigo,
     required this.nombre,
     required this.descripcion,
     required this.lugar,
@@ -14,6 +15,7 @@ class Deporte {
   factory Deporte.fromMap(String id, Map<String, dynamic> datos) {
     return Deporte(
       id: id,
+      codigo: datos['codigo'] as String? ?? '',
       nombre: datos['nombre'] as String,
       descripcion: datos['descripcion'] as String? ?? '',
       lugar: datos['lugar'] as String? ?? '',
@@ -25,6 +27,10 @@ class Deporte {
   }
 
   final String id;
+
+  /// Código único del deporte, por ejemplo «FUT-01». Lo asigna el
+  /// administrador al crearlo y sirve para buscarlo en el catálogo.
+  final String codigo;
   final String nombre;
   final String descripcion;
   final String lugar;
@@ -44,7 +50,37 @@ class Deporte {
 
   int get inscritos => cupoMaximo - cuposDisponibles;
 
+  /// Copia el deporte cambiando solo los campos indicados. La usan el
+  /// administrador al editarlo y los repositorios al mover los cupos.
+  ///
+  /// Para quitar el entrenador asignado se pasa [quitarEntrenador] en true,
+  /// porque un null en [idEntrenador] significa «no cambiarlo».
+  Deporte copyWith({
+    String? codigo,
+    String? nombre,
+    String? descripcion,
+    String? lugar,
+    int? cupoMaximo,
+    int? cuposDisponibles,
+    String? idEntrenador,
+    bool quitarEntrenador = false,
+    bool? visible,
+  }) {
+    return Deporte(
+      id: id,
+      codigo: codigo ?? this.codigo,
+      nombre: nombre ?? this.nombre,
+      descripcion: descripcion ?? this.descripcion,
+      lugar: lugar ?? this.lugar,
+      cupoMaximo: cupoMaximo ?? this.cupoMaximo,
+      cuposDisponibles: cuposDisponibles ?? this.cuposDisponibles,
+      idEntrenador: quitarEntrenador ? null : idEntrenador ?? this.idEntrenador,
+      visible: visible ?? this.visible,
+    );
+  }
+
   Map<String, dynamic> toMap() => {
+    'codigo': codigo,
     'nombre': nombre,
     'descripcion': descripcion,
     'lugar': lugar,

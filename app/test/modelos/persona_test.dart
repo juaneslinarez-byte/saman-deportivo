@@ -131,9 +131,26 @@ void main() {
         cedula: 'V-456',
         correo: 'luis@correo.com',
         especialidad: 'Futbol',
+        aniosExperiencia: 5,
       );
       expect(t.toMap()['especialidad'], 'Futbol');
+      expect(t.toMap()['aniosExperiencia'], 5);
       expect(t.toMap()['actor'], 'entrenador');
+    });
+
+    test('fromMap lee los años de experiencia y usa 0 si faltan', () {
+      final datos = {
+        'actor': 'entrenador',
+        'nombre': 'Luis',
+        'apellido': 'Gomez',
+        'cedula': 'V-456',
+        'correo': 'luis@correo.com',
+        'especialidad': 'Futbol',
+      };
+      final conAnios = Persona.fromMap('t1', {...datos, 'aniosExperiencia': 7});
+      final sinAnios = Persona.fromMap('t1', datos);
+      expect((conAnios as Entrenador).aniosExperiencia, 7);
+      expect((sinAnios as Entrenador).aniosExperiencia, 0);
     });
   });
 

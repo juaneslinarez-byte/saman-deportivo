@@ -52,6 +52,15 @@ void main() {
     });
   });
 
+  test('Validadores.aniosExperiencia acepta enteros entre 0 y 60', () {
+    expect(Validadores.aniosExperiencia('0'), isNull);
+    expect(Validadores.aniosExperiencia(' 12 '), isNull);
+    expect(Validadores.aniosExperiencia('61'), isNotNull);
+    expect(Validadores.aniosExperiencia('-1'), isNotNull);
+    expect(Validadores.aniosExperiencia('dos'), isNotNull);
+    expect(Validadores.aniosExperiencia(''), isNotNull);
+  });
+
   test('Validadores.requerido rechaza textos vacíos o solo con espacios', () {
     expect(Validadores.requerido('Ana'), isNull);
     expect(Validadores.requerido('   '), isNotNull);

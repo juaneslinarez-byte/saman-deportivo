@@ -13,6 +13,8 @@ import 'viewmodels/perfil_viewmodel.dart';
 import 'vistas/auth/login_view.dart';
 import 'vistas/auth/recuperar_password_vista.dart';
 import 'vistas/auth/registro_view.dart';
+import 'vistas/bienvenida/bienvenida_view.dart';
+import 'vistas/perfil/editar_perfil_view.dart';
 import 'vistas/perfil/perfil_view.dart';
 
 Future<void> main() async {
@@ -62,10 +64,12 @@ class MyApp extends StatelessWidget {
         theme: TemaSaman.claro,
         initialRoute: Rutas.inicial,
         routes: {
+          Rutas.bienvenida: (context) => const BienvenidaView(),
           Rutas.login: (context) => const LoginView(),
           Rutas.registro: (context) => const RegistroView(),
           Rutas.recuperar: (context) => const RecuperarPasswordView(),
           Rutas.perfil: (context) => const PerfilView(),
+          Rutas.editarPerfil: (context) => const EditarPerfilView(),
         },
       ),
     );

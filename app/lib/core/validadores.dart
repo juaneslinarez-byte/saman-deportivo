@@ -39,6 +39,14 @@ abstract final class Validadores {
     return null;
   }
 
+  /// Años de experiencia del entrenador: un número entero entre 0 y 60.
+  static String? aniosExperiencia(String? valor) {
+    final anios = int.tryParse(valor?.trim() ?? '');
+    if (anios == null) return 'Ingresa un número entero';
+    if (anios < 0 || anios > 60) return 'Debe estar entre 0 y 60';
+    return null;
+  }
+
   /// Comprueba que la confirmación coincida con la contraseña escrita.
   static String? confirmacion(String? valor, String contrasena) {
     if (valor == null || valor.isEmpty) return 'Repite tu contraseña';

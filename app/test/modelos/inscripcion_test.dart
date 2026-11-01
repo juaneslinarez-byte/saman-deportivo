@@ -9,6 +9,8 @@ void main() {
       final i = Inscripcion(
         id: 'i1',
         idEstudiante: 'e1',
+        nombreEstudiante: 'Ana Pérez',
+        carnetEstudiante: '20231110001',
         idDeporte: 'd1',
         fecha: fecha,
       );
@@ -20,6 +22,8 @@ void main() {
       final i = Inscripcion(
         id: 'i1',
         idEstudiante: 'e1',
+        nombreEstudiante: 'Ana Pérez',
+        carnetEstudiante: '20231110001',
         idDeporte: 'd1',
         fecha: fecha,
         estado: EstadoInscripcion.cancelada,
@@ -38,6 +42,36 @@ void main() {
       expect(i.idDeporte, 'd1');
       expect(i.fecha, fecha);
       expect(i.estado, EstadoInscripcion.cancelada);
+    });
+
+    test('fromMap usa textos vacíos si faltan el nombre y el carnet', () {
+      final i = Inscripcion.fromMap('i1', {
+        'idEstudiante': 'e1',
+        'idDeporte': 'd1',
+        'fecha': fecha,
+        'estado': 'activa',
+      });
+      expect(i.nombreEstudiante, '');
+      expect(i.carnetEstudiante, '');
+    });
+
+    test('idPara une el estudiante y el deporte', () {
+      expect(Inscripcion.idPara('e1', 'futbol'), 'e1_futbol');
+    });
+
+    test('conEstado cambia solo el estado', () {
+      final activa = Inscripcion.fromMap('e1_d1', {
+        'idEstudiante': 'e1',
+        'nombreEstudiante': 'Ana Pérez',
+        'carnetEstudiante': '20231110001',
+        'idDeporte': 'd1',
+        'fecha': fecha,
+        'estado': 'activa',
+      });
+      final cancelada = activa.conEstado(EstadoInscripcion.cancelada);
+      expect(cancelada.estaActiva, isFalse);
+      expect(cancelada.id, 'e1_d1');
+      expect(cancelada.nombreEstudiante, 'Ana Pérez');
     });
 
     test('fromMap con estado invalido lanza FormatException', () {
@@ -81,11 +115,15 @@ void main() {
       final mapa = Inscripcion(
         id: 'i1',
         idEstudiante: 'e1',
+        nombreEstudiante: 'Ana Pérez',
+        carnetEstudiante: '20231110001',
         idDeporte: 'd1',
         fecha: fecha,
       ).toMap();
       expect(mapa['estado'], 'activa');
       expect(mapa['idEstudiante'], 'e1');
+      expect(mapa['nombreEstudiante'], 'Ana Pérez');
+      expect(mapa['carnetEstudiante'], '20231110001');
       expect(mapa['fecha'], fecha);
     });
   });

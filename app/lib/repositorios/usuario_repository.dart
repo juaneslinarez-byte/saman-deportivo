@@ -21,4 +21,13 @@ abstract class UsuarioRepository {
 
   /// Lista los usuarios, opcionalmente de un solo tipo (RF-ADM-08).
   Future<List<Persona>> listar({Actor? actor});
+
+  /// Guarda el perfil completo, incluidos el actor, la solvencia y si está
+  /// habilitado. Solo lo usa el administrador (RF-ADM-08, RF-SIS-07), y las
+  /// reglas de seguridad lo rechazan para cualquier otro usuario.
+  ///
+  /// Sirve para habilitar o deshabilitar una cuenta, marcar la solvencia y
+  /// convertir en entrenador a alguien que se registró como estudiante:
+  /// se pasa un [Entrenador] con el mismo id y el perfil se reemplaza.
+  Future<void> actualizarComoAdministrador(Persona persona);
 }

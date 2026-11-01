@@ -22,3 +22,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Logo y fotos de la página de bienvenida, tomados del prototipo en Figma.
+  assets:
+    - assets/imagenes/
