@@ -10,6 +10,7 @@ abstract final class Rutas {
   static const String registro = '/registro';
   static const String recuperar = '/recuperar';
   static const String perfil = '/perfil';
+  static const String editarPerfil = '/perfil/editar';
 
   /// Pantalla que se muestra al abrir la aplicación.
   static const String inicial = login;
