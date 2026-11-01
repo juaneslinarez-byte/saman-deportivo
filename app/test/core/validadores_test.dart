@@ -52,6 +52,49 @@ void main() {
     });
   });
 
+  group('Validadores de datos personales', () {
+    test('nombrePropio acepta nombres con tildes, ñ, apóstrofo y guion', () {
+      expect(Validadores.nombrePropio('José'), isNull);
+      expect(Validadores.nombrePropio('María José'), isNull);
+      expect(Validadores.nombrePropio('Núñez-D\'Ángelo'), isNull);
+    });
+
+    test('nombrePropio rechaza números, vacíos y una sola letra', () {
+      expect(Validadores.nombrePropio('12345678'), 'Solo se permiten letras');
+      expect(Validadores.nombrePropio('Ana3'), 'Solo se permiten letras');
+      expect(Validadores.nombrePropio('   '), isNotNull);
+      expect(Validadores.nombrePropio('A'), isNotNull);
+    });
+
+    test('cedula acepta de 6 a 9 dígitos con prefijo y separadores', () {
+      expect(Validadores.cedula('28123456'), isNull);
+      expect(Validadores.cedula('V-28.123.456'), isNull);
+      expect(Validadores.cedula('e12345678'), isNull);
+    });
+
+    test('cedula rechaza letras y largos fuera de rango', () {
+      expect(Validadores.cedula('abc'), isNotNull);
+      expect(Validadores.cedula('12345'), isNotNull);
+      expect(Validadores.cedula('1234567890'), isNotNull);
+      expect(Validadores.cedula(''), isNotNull);
+    });
+
+    test('carnet acepta solo números de 8 a 12 dígitos', () {
+      expect(Validadores.carnet('20231110245'), isNull);
+      expect(Validadores.carnet('2023-111'), isNotNull);
+      expect(Validadores.carnet('1234567'), isNotNull);
+      expect(Validadores.carnet('carnet'), isNotNull);
+    });
+
+    test('textoDescriptivo acepta carreras y cargos, sin números', () {
+      expect(Validadores.textoDescriptivo('Ing. de Sistemas'), isNull);
+      expect(Validadores.textoDescriptivo('Coordinación de Deportes'), isNull);
+      expect(Validadores.textoDescriptivo('asd123'), isNotNull);
+      expect(Validadores.textoDescriptivo('..'), isNotNull);
+      expect(Validadores.textoDescriptivo('...'), isNotNull);
+    });
+  });
+
   test('Validadores.aniosExperiencia acepta enteros entre 0 y 60', () {
     expect(Validadores.aniosExperiencia('0'), isNull);
     expect(Validadores.aniosExperiencia(' 12 '), isNull);
