@@ -69,6 +69,10 @@ class PerfilViewModel extends ChangeNotifier {
     } on ErrorAutenticacion catch (e) {
       _error = e.mensaje;
       return false;
+    } catch (_) {
+      // Por ejemplo, sin conexión o rechazado por las reglas de seguridad.
+      _error = 'No se pudieron guardar los cambios.';
+      return false;
     } finally {
       _cargando = false;
       notifyListeners();
