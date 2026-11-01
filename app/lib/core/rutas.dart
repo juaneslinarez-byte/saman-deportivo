@@ -6,6 +6,7 @@
 /// cada nombre y su pantalla está en main.dart, así core no depende de las
 /// vistas.
 abstract final class Rutas {
+  static const String bienvenida = '/bienvenida';
   static const String login = '/login';
   static const String registro = '/registro';
   static const String recuperar = '/recuperar';
@@ -13,5 +14,5 @@ abstract final class Rutas {
   static const String editarPerfil = '/perfil/editar';
 
   /// Pantalla que se muestra al abrir la aplicación.
-  static const String inicial = login;
+  static const String inicial = bienvenida;
 }
