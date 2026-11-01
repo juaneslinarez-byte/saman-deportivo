@@ -146,8 +146,12 @@ service cloud.firestore {
     // ---------------------------------------------------------------
     match /inscripciones/{idInscripcion} {
       // El estudiante lee las suyas; el entrenador y el administrador, las
-      // nóminas (RF-ENT-02, RF-ADM-04).
+      // nóminas (RF-ENT-02, RF-ADM-04). La condición del id deja al
+      // estudiante leer su inscripción idEstudiante_idDeporte aunque todavía
+      // no exista, porque la transacción de inscribirse la consulta antes de
+      // crearla; la del campo idEstudiante permite sus consultas por lista.
       allow read: if esAdministrador() || esEntrenador()
+        || (conSesion() && idInscripcion.matches(request.auth.uid + '_.+'))
         || (conSesion() && resource.data.idEstudiante == request.auth.uid);
 
       // Inscribirse: el propio estudiante, solvente y habilitado, con su
