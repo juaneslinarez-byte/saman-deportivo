@@ -178,17 +178,17 @@ class _EditarPerfilViewState extends State<EditarPerfilView> {
           _campo(
             controller: _nombreController,
             etiqueta: 'Nombre',
-            validator: Validadores.requerido,
+            validator: Validadores.nombrePropio,
           ),
           _campo(
             controller: _apellidoController,
             etiqueta: 'Apellido',
-            validator: Validadores.requerido,
+            validator: Validadores.nombrePropio,
           ),
           _campo(
             controller: _cedulaController,
             etiqueta: 'Cédula',
-            validator: Validadores.requerido,
+            validator: Validadores.cedula,
           ),
           ..._camposDelActor(persona),
           _campoFijo('Correo institucional', persona.correo),
@@ -224,19 +224,19 @@ class _EditarPerfilViewState extends State<EditarPerfilView> {
       _campo(
         controller: _dato1Controller,
         etiqueta: 'Carnet',
-        validator: Validadores.requerido,
+        validator: Validadores.carnet,
       ),
       _campo(
         controller: _dato2Controller,
         etiqueta: 'Carrera',
-        validator: Validadores.requerido,
+        validator: Validadores.textoDescriptivo,
       ),
     ],
     Entrenador() => [
       _campo(
         controller: _dato1Controller,
         etiqueta: 'Especialidad',
-        validator: Validadores.requerido,
+        validator: Validadores.textoDescriptivo,
       ),
       _campo(
         controller: _dato2Controller,
@@ -249,7 +249,7 @@ class _EditarPerfilViewState extends State<EditarPerfilView> {
       _campo(
         controller: _dato1Controller,
         etiqueta: 'Cargo',
-        validator: Validadores.requerido,
+        validator: Validadores.textoDescriptivo,
       ),
     ],
     _ => const [],
