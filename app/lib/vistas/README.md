@@ -4,6 +4,7 @@ Pantallas de la aplicación (capa **Vista** del patrón MVVM), organizadas por a
 
 | Carpeta | Contenido |
 | --- | --- |
+| `bienvenida/` | Página de bienvenida (landing) con el acceso al inicio de sesión y al registro |
 | `auth/` | Inicio de sesión, registro y recuperación de contraseña |
 | `perfil/` | Perfil del usuario y su edición, comunes a los tres actores |
 | `estudiante/` | Catálogo de disciplinas, inscripciones y asistencia del estudiante |
