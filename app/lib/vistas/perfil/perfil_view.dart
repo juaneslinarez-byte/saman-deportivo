@@ -65,8 +65,7 @@ class PerfilView extends StatelessWidget {
     required BuildContext context,
     required String nombre,
     required String correo,
-    required String carnet,
-    required String carrera,
+    required List<(String, String, IconData)> datos,
     required String rol,
     required Color orangeUnimet,
     required Color greyBg,
@@ -125,21 +124,38 @@ class PerfilView extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        _buildInfoTile(
-          label: 'Carnet / Identificación',
-          value: carnet,
-          icon: Icons.badge_outlined,
-          bg: greyBg,
+        for (final (etiqueta, valor, icono) in datos) ...[
+          _buildInfoTile(
+            label: etiqueta,
+            value: valor,
+            icon: icono,
+            bg: greyBg,
+          ),
+          const SizedBox(height: 12),
+        ],
+        const SizedBox(height: 20),
+
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: orangeUnimet,
+              foregroundColor: ColoresSaman.blanco,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            onPressed: () => Navigator.pushNamed(context, Rutas.editarPerfil),
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            label: const Text(
+              'Editar perfil',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+          ),
         ),
         const SizedBox(height: 12),
-
-        _buildInfoTile(
-          label: 'Carrera / Programa',
-          value: carrera,
-          icon: Icons.school_outlined,
-          bg: greyBg,
-        ),
-        const SizedBox(height: 32),
 
         SizedBox(
           width: double.infinity,
@@ -234,25 +250,54 @@ class PerfilView extends StatelessWidget {
     );
   }
 
-  /// Muestra los datos que corresponden a cada actor.
+  /// Muestra los datos que corresponden a cada actor, con sus etiquetas.
   Widget _buildPerfil({
     required BuildContext context,
     required Persona persona,
     required Color orangeUnimet,
     required Color greyBg,
   }) {
-    final (rol, dato1, dato2) = switch (persona) {
-      Estudiante e => ('Estudiante', e.carnet, e.carrera),
-      Entrenador e => ('Entrenador', e.cedula, e.especialidad),
-      Administrador a => ('Administrador', a.cedula, a.cargo),
-      _ => ('Usuario', persona.cedula, ''),
+    final cedula = ('Cédula', persona.cedula, Icons.badge_outlined);
+    final (
+      String rol,
+      List<(String, String, IconData)> datos,
+    ) = switch (persona) {
+      Estudiante e => (
+        'Estudiante',
+        [
+          cedula,
+          ('Carnet', e.carnet, Icons.credit_card_outlined),
+          ('Carrera', e.carrera, Icons.school_outlined),
+          (
+            'Solvencia',
+            e.solvente ? 'Solvente' : 'No solvente',
+            Icons.verified_outlined,
+          ),
+        ],
+      ),
+      Entrenador e => (
+        'Entrenador',
+        [
+          cedula,
+          ('Especialidad', e.especialidad, Icons.sports_outlined),
+          (
+            'Años de experiencia',
+            '${e.aniosExperiencia}',
+            Icons.timeline_outlined,
+          ),
+        ],
+      ),
+      Administrador a => (
+        'Administrador',
+        [cedula, ('Cargo', a.cargo, Icons.work_outline)],
+      ),
+      _ => ('Usuario', [cedula]),
     };
     return _buildPerfilContent(
       context: context,
       nombre: persona.nombreCompleto,
       correo: persona.correo,
-      carnet: dato1,
-      carrera: dato2,
+      datos: datos,
       rol: rol,
       orangeUnimet: orangeUnimet,
       greyBg: greyBg,
