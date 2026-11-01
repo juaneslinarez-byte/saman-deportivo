@@ -5,7 +5,7 @@ Pantallas de la aplicación (capa **Vista** del patrón MVVM), organizadas por a
 | Carpeta | Contenido |
 | --- | --- |
 | `auth/` | Inicio de sesión, registro y recuperación de contraseña |
-| `perfil/` | Perfil del usuario, común a los tres actores |
+| `perfil/` | Perfil del usuario y su edición, comunes a los tres actores |
 | `estudiante/` | Catálogo de disciplinas, inscripciones y asistencia del estudiante |
 | `entrenador/` | Nómina de inscritos y registro de asistencia |
 | `administrador/` | Gestión de deportes, entrenadores, cupos, sesiones y pagos |
