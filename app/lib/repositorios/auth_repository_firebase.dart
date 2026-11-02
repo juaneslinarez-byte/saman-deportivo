@@ -83,8 +83,7 @@ class AuthRepositoryFirebase implements AuthRepository {
       'user-not-found' ||
       'wrong-password' => 'Correo o contraseña incorrectos.',
       'email-already-in-use' => 'Ya existe una cuenta con ese correo.',
-      'weak-password' =>
-        'La contraseña es muy débil. Usa al menos 6 caracteres.',
+      'weak-password' => 'La contraseña es muy débil. Usa al menos 8 caracteres con letras y números.',
       'operation-not-allowed' =>
         'El inicio de sesión con correo no está habilitado.',
       'too-many-requests' =>

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colores.dart';
+import '../../core/formatos.dart';
 import '../../core/rutas.dart';
 import '../../core/validadores.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../comun/campos_formulario.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -27,12 +29,12 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<void> _iniciarSesion() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_cargando || !_formKey.currentState!.validate()) return;
 
     setState(() => _cargando = true);
     final authViewModel = context.read<AuthViewModel>();
     final exito = await authViewModel.iniciarSesion(
-      correo: _emailController.text.trim(),
+      correo: Formatos.correo(_emailController.text),
       contrasena: _passwordController.text,
     );
 
@@ -57,7 +59,6 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     const Color orangeUnimet = ColoresSaman.naranja;
-    const Color greyBg = ColoresSaman.gris;
 
     return Scaffold(
       backgroundColor: ColoresSaman.fondo,
@@ -78,166 +79,156 @@ class _LoginViewState extends State<LoginView> {
                 ),
               ],
             ),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Bienvenido a Samán Deportivo',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: ColoresSaman.azulOscuro,
+            child: AutofillGroup(
+              child: Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Bienvenido a Samán Deportivo',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: ColoresSaman.azulOscuro,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 6),
+                    const SizedBox(height: 6),
 
-                  const Text(
-                    'Ingresa tu cuenta institucional',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: ColoresSaman.textoSecundario,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Campo Correo Unificado
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      hintText: 'usuario@correo.unimet.edu.ve',
-                      hintStyle: const TextStyle(
-                        color: ColoresSaman.textoTenue,
+                    const Text(
+                      'Ingresa tu cuenta institucional',
+                      style: TextStyle(
                         fontSize: 14,
+                        color: ColoresSaman.textoSecundario,
                       ),
-                      filled: true,
-                      fillColor: greyBg,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    validator: Validadores.correoInstitucional,
-                  ),
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 24),
 
-                  // Campo Contraseña
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: 'Contraseña',
-                      hintStyle: const TextStyle(
-                        color: ColoresSaman.textoTenue,
-                        fontSize: 14,
-                      ),
-                      filled: true,
-                      fillColor: greyBg,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
+                    CampoTexto(
+                      etiqueta: 'Correo institucional',
+                      pista: 'usuario@correo.unimet.edu.ve',
+                      controller: _emailController,
+                      teclado: TextInputType.emailAddress,
+                      formateadores: Entradas.correo,
+                      autocompletar: const [
+                        AutofillHints.email,
+                        AutofillHints.username,
+                      ],
+                      validator: Validadores.correoInstitucional,
                     ),
-                    validator: (val) => val == null || val.isEmpty
-                        ? 'Ingresa tu contraseña'
-                        : null,
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 14),
 
-                  // Botón Iniciar Sesión
-                  _cargando
-                      ? const Center(
-                          child: CircularProgressIndicator(color: orangeUnimet),
-                        )
-                      : ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: orangeUnimet,
-                            foregroundColor: ColoresSaman.blanco,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+                    CampoTexto(
+                      etiqueta: 'Contraseña',
+                      pista: 'Tu contraseña',
+                      controller: _passwordController,
+                      esContrasena: true,
+                      formateadores: Entradas.contrasena,
+                      autocompletar: const [AutofillHints.password],
+                      accion: TextInputAction.done,
+                      // Enter inicia sesión, como en cualquier página.
+                      alEnviar: (_) => _iniciarSesion(),
+                      validator: Validadores.contrasenaIngreso,
+                    ),
+                    const SizedBox(height: 22),
+
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: orangeUnimet,
+                        foregroundColor: ColoresSaman.blanco,
+                        disabledBackgroundColor: orangeUnimet.withValues(
+                          alpha: 0.6,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      onPressed: _cargando ? null : _iniciarSesion,
+                      child: _cargando
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: ColoresSaman.blanco,
+                              ),
+                            )
+                          : const Text(
+                              'Iniciar sesión',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, Rutas.recuperar);
+                        },
+                        child: const Text(
+                          '¿Olvidaste tu contraseña?',
+                          style: TextStyle(
+                            color: orangeUnimet,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
                           ),
-                          onPressed: _iniciarSesion,
+                        ),
+                      ),
+                    ),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          '¿No tienes cuenta? ',
+                          style: TextStyle(
+                            color: ColoresSaman.textoSecundario,
+                            fontSize: 13,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, Rutas.registro);
+                          },
                           child: const Text(
-                            'Iniciar sesión',
+                            'Regístrate',
                             style: TextStyle(
-                              fontSize: 16,
+                              color: orangeUnimet,
+                              fontSize: 13,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                  const SizedBox(height: 16),
-
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, Rutas.recuperar);
-                      },
-                      child: const Text(
-                        '¿Olvidaste tu contraseña?',
-                        style: TextStyle(
-                          color: orangeUnimet,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(height: 16),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        '¿No tienes cuenta? ',
-                        style: TextStyle(
-                          color: ColoresSaman.textoSecundario,
-                          fontSize: 13,
+                    Center(
+                      child: GestureDetector(
+                        onTap: () => Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          Rutas.bienvenida,
+                          (ruta) => false,
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, Rutas.registro);
-                        },
                         child: const Text(
-                          'Regístrate',
+                          '← Volver al inicio',
                           style: TextStyle(
-                            color: orangeUnimet,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
+                            color: ColoresSaman.textoDiscreto,
+                            fontSize: 12,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  Center(
-                    child: GestureDetector(
-                      onTap: () {},
-                      child: const Text(
-                        '← Volver al inicio',
-                        style: TextStyle(
-                          color: ColoresSaman.textoDiscreto,
-                          fontSize: 12,
-                        ),
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
