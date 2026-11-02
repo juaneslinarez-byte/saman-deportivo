@@ -13,6 +13,17 @@ abstract final class Rutas {
   static const String perfil = '/perfil';
   static const String editarPerfil = '/perfil/editar';
 
+  /// Pantalla de inicio de cada actor, a la que se llega al entrar.
+  static const String inicio = '/inicio';
+
+  // Entradas de cada módulo desde el inicio. Mientras un módulo no registre
+  // su pantalla en main.dart, la ruta muestra «En construcción».
+  static const String catalogo = '/estudiante/catalogo';
+  static const String misDisciplinas = '/estudiante/mis-disciplinas';
+  static const String disciplinasEntrenador = '/entrenador';
+  static const String adminDeportes = '/admin/deportes';
+  static const String adminUsuarios = '/admin/usuarios';
+
   /// Pantalla que se muestra al abrir la aplicación.
   static const String inicial = bienvenida;
 }

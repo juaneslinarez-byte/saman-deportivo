@@ -14,6 +14,8 @@ import 'vistas/auth/login_view.dart';
 import 'vistas/auth/recuperar_password_vista.dart';
 import 'vistas/auth/registro_view.dart';
 import 'vistas/bienvenida/bienvenida_view.dart';
+import 'vistas/inicio/en_construccion_view.dart';
+import 'vistas/inicio/inicio_view.dart';
 import 'vistas/perfil/editar_perfil_view.dart';
 import 'vistas/perfil/perfil_view.dart';
 
@@ -70,7 +72,10 @@ class MyApp extends StatelessWidget {
           Rutas.recuperar: (context) => const RecuperarPasswordView(),
           Rutas.perfil: (context) => const PerfilView(),
           Rutas.editarPerfil: (context) => const EditarPerfilView(),
+          Rutas.inicio: (context) => const InicioView(),
         },
+        // Las secciones cuyo módulo todavía no registró su pantalla.
+        onUnknownRoute: EnConstruccionView.ruta,
       ),
     );
   }

@@ -63,7 +63,7 @@ class _RegistroViewState extends State<RegistroView> {
 
     if (exito) {
       // Al entrar se borra el historial: «atrás» no vuelve al formulario.
-      Navigator.pushNamedAndRemoveUntil(context, Rutas.perfil, (ruta) => false);
+      Navigator.pushNamedAndRemoveUntil(context, Rutas.inicio, (ruta) => false);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
