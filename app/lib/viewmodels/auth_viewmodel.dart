@@ -94,6 +94,11 @@ class AuthViewModel extends ChangeNotifier {
     } on ErrorAutenticacion catch (e) {
       _error = e.mensaje;
       return false;
+    } catch (_) {
+      // La cuenta se creó pero el perfil no se pudo guardar (por ejemplo,
+      // sin conexión): se avisa en lugar de dejar la pantalla colgada.
+      _error = 'No se pudo guardar tu perfil. Revisa tu conexión e inténtalo de nuevo.';
+      return false;
     } finally {
       _cargando = false;
       notifyListeners();

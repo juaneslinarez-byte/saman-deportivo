@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/catalogos.dart';
 import '../../core/colores.dart';
+import '../../core/formatos.dart';
 import '../../core/validadores.dart';
 import '../../modelos/modelos.dart';
 import '../../viewmodels/perfil_viewmodel.dart';
+import '../comun/campos_formulario.dart';
 
 /// Formulario para que cada usuario edite los datos de su perfil.
 ///
-/// Muestra los campos comunes (nombre, apellido y cédula) y los propios de
-/// cada actor. El correo no se edita porque es el de la cuenta, y el actor,
-/// la solvencia y la habilitación solo los cambia el administrador.
+/// Se editan el nombre, el apellido y los datos propios de cada actor. El
+/// correo, la cédula y el carnet identifican a la persona y no se cambian
+/// desde aquí, como en cualquier sistema universitario; el actor, la
+/// solvencia y la habilitación solo los cambia el administrador.
 class EditarPerfilView extends StatefulWidget {
   const EditarPerfilView({super.key});
 
@@ -22,24 +26,35 @@ class _EditarPerfilViewState extends State<EditarPerfilView> {
   final _formKey = GlobalKey<FormState>();
   final _nombreController = TextEditingController();
   final _apellidoController = TextEditingController();
-  final _cedulaController = TextEditingController();
 
-  // Campos propios de cada actor: carnet y carrera del estudiante,
-  // especialidad y años de experiencia del entrenador, cargo del
-  // administrador.
-  final _dato1Controller = TextEditingController();
-  final _dato2Controller = TextEditingController();
+  /// Cargo del administrador o años de experiencia del entrenador.
+  final _datoController = TextEditingController();
+
+  /// Carrera del estudiante o especialidad del entrenador, elegidas de una
+  /// lista.
+  String? _seleccion;
 
   /// Id del perfil cuyos datos ya se copiaron a los campos.
   String? _idCargado;
 
   @override
+  void initState() {
+    super.initState();
+    // El botón de guardar se activa solo cuando hay cambios.
+    for (final controller in [
+      _nombreController,
+      _apellidoController,
+      _datoController,
+    ]) {
+      controller.addListener(() => setState(() {}));
+    }
+  }
+
+  @override
   void dispose() {
     _nombreController.dispose();
     _apellidoController.dispose();
-    _cedulaController.dispose();
-    _dato1Controller.dispose();
-    _dato2Controller.dispose();
+    _datoController.dispose();
     super.dispose();
   }
 
@@ -50,59 +65,68 @@ class _EditarPerfilViewState extends State<EditarPerfilView> {
     _idCargado = persona.id;
     _nombreController.text = persona.nombre;
     _apellidoController.text = persona.apellido;
-    _cedulaController.text = persona.cedula;
     switch (persona) {
       case Estudiante e:
-        _dato1Controller.text = e.carnet;
-        _dato2Controller.text = e.carrera;
+        // Si la carrera guardada no es de la lista, el usuario debe elegirla.
+        _seleccion = Catalogos.carreras.contains(e.carrera) ? e.carrera : null;
       case Entrenador e:
-        _dato1Controller.text = e.especialidad;
-        _dato2Controller.text = e.aniosExperiencia.toString();
+        _seleccion = Catalogos.especialidades.contains(e.especialidad)
+            ? e.especialidad
+            : null;
+        _datoController.text = e.aniosExperiencia.toString();
       case Administrador a:
-        _dato1Controller.text = a.cargo;
+        _datoController.text = a.cargo;
     }
   }
 
-  /// Arma el perfil con los cambios, conservando lo que el usuario no edita.
+  /// Arma el perfil con los cambios, ya normalizados, conservando lo que el
+  /// usuario no edita.
   Persona _conCambios(Persona actual) {
-    final nombre = _nombreController.text.trim();
-    final apellido = _apellidoController.text.trim();
-    final cedula = _cedulaController.text.trim();
-    final dato1 = _dato1Controller.text.trim();
-    final dato2 = _dato2Controller.text.trim();
+    final nombre = Formatos.nombrePropio(_nombreController.text);
+    final apellido = Formatos.nombrePropio(_apellidoController.text);
+    final dato = _datoController.text.trim();
     return switch (actual) {
       Estudiante e => Estudiante(
         id: e.id,
         nombre: nombre,
         apellido: apellido,
-        cedula: cedula,
+        cedula: e.cedula,
         correo: e.correo,
         habilitado: e.habilitado,
-        carnet: dato1,
-        carrera: dato2,
+        carnet: e.carnet,
+        carrera: _seleccion ?? e.carrera,
         solvente: e.solvente,
       ),
       Entrenador e => Entrenador(
         id: e.id,
         nombre: nombre,
         apellido: apellido,
-        cedula: cedula,
+        cedula: e.cedula,
         correo: e.correo,
         habilitado: e.habilitado,
-        especialidad: dato1,
-        aniosExperiencia: int.parse(dato2),
+        especialidad: _seleccion ?? e.especialidad,
+        aniosExperiencia: int.tryParse(dato) ?? e.aniosExperiencia,
       ),
       Administrador a => Administrador(
         id: a.id,
         nombre: nombre,
         apellido: apellido,
-        cedula: cedula,
+        cedula: a.cedula,
         correo: a.correo,
         habilitado: a.habilitado,
-        cargo: dato1,
+        cargo: Formatos.textoDescriptivo(dato),
       ),
       _ => actual,
     };
+  }
+
+  /// Compara lo escrito con el perfil guardado.
+  bool _hayCambios(Persona actual) {
+    final nuevo = _conCambios(actual).toMap();
+    final guardado = actual.toMap();
+    return nuevo.keys.any((campo) => nuevo[campo] != guardado[campo]) ||
+        (actual is Estudiante && _seleccion == null) ||
+        (actual is Entrenador && _seleccion == null);
   }
 
   Future<void> _guardar(Persona actual) async {
@@ -125,176 +149,223 @@ class _EditarPerfilViewState extends State<EditarPerfilView> {
     if (exito) Navigator.pop(context);
   }
 
+  /// Pregunta antes de salir si hay cambios sin guardar.
+  Future<void> _confirmarSalida() async {
+    final salir = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Descartar los cambios?'),
+        content: const Text('Los cambios que hiciste no se guardarán.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Seguir editando'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Descartar',
+              style: TextStyle(color: ColoresSaman.rojo),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (salir == true && mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final perfilViewModel = context.watch<PerfilViewModel>();
     final persona = perfilViewModel.perfil;
     if (persona != null) _cargarDatos(persona);
+    final hayCambios = persona != null && _hayCambios(persona);
 
-    return Scaffold(
-      backgroundColor: ColoresSaman.fondo,
-      appBar: AppBar(
-        title: const Text(
-          'Editar perfil',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+    return PopScope(
+      canPop: !hayCambios,
+      onPopInvokedWithResult: (salio, _) {
+        if (!salio) _confirmarSalida();
+      },
+      child: Scaffold(
+        backgroundColor: ColoresSaman.fondo,
+        appBar: AppBar(
+          title: const Text(
+            'Editar perfil',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          backgroundColor: ColoresSaman.blanco,
+          foregroundColor: ColoresSaman.azulOscuro,
+          elevation: 0,
+          centerTitle: true,
         ),
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
-        centerTitle: true,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 480),
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: ColoresSaman.blanco,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 480),
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: ColoresSaman.blanco,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: persona == null
+                  ? _buildSinPerfil(perfilViewModel)
+                  : _buildFormulario(
+                      persona,
+                      cargando: perfilViewModel.cargando,
+                      hayCambios: hayCambios,
+                    ),
             ),
-            child: persona == null
-                ? _buildSinPerfil(perfilViewModel)
-                : _buildFormulario(persona, perfilViewModel.cargando),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFormulario(Persona persona, bool cargando) {
+  Widget _buildFormulario(
+    Persona persona, {
+    required bool cargando,
+    required bool hayCambios,
+  }) {
+    const espacio = SizedBox(height: 14);
     return Form(
       key: _formKey,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _campo(
-            controller: _nombreController,
+          CampoTexto(
             etiqueta: 'Nombre',
-            validator: Validadores.requerido,
+            controller: _nombreController,
+            formateadores: Entradas.nombre,
+            validator: (v) => Validadores.nombrePropio(v),
           ),
-          _campo(
-            controller: _apellidoController,
+          espacio,
+          CampoTexto(
             etiqueta: 'Apellido',
-            validator: Validadores.requerido,
+            controller: _apellidoController,
+            formateadores: Entradas.nombre,
+            validator: (v) => Validadores.nombrePropio(v, campo: 'apellido'),
           ),
-          _campo(
-            controller: _cedulaController,
-            etiqueta: 'Cédula',
-            validator: Validadores.requerido,
-          ),
+          espacio,
           ..._camposDelActor(persona),
-          _campoFijo('Correo institucional', persona.correo),
-          const SizedBox(height: 16),
-          cargando
-              ? const Center(
-                  child: CircularProgressIndicator(color: ColoresSaman.naranja),
-                )
-              : ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ColoresSaman.naranja,
-                    foregroundColor: ColoresSaman.blanco,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+          CampoTexto(
+            etiqueta: 'Correo institucional',
+            valorInicial: persona.correo,
+            habilitado: false,
+          ),
+          espacio,
+          CampoTexto(
+            etiqueta: 'Cédula',
+            valorInicial: persona.cedula,
+            habilitado: false,
+          ),
+          if (persona is Estudiante) ...[
+            espacio,
+            CampoTexto(
+              etiqueta: 'Carnet',
+              valorInicial: persona.carnet,
+              habilitado: false,
+            ),
+          ],
+          const SizedBox(height: 10),
+          const Text(
+            'El correo, la cédula y el carnet no se pueden cambiar. Si alguno '
+            'está mal, pídele al administrador que lo corrija.',
+            style: TextStyle(fontSize: 12, color: ColoresSaman.textoSecundario),
+          ),
+          const SizedBox(height: 22),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColoresSaman.naranja,
+              foregroundColor: ColoresSaman.blanco,
+              disabledBackgroundColor: ColoresSaman.gris,
+              disabledForegroundColor: ColoresSaman.textoDiscreto,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            // Sin cambios no hay nada que guardar.
+            onPressed: hayCambios && !cargando ? () => _guardar(persona) : null,
+            child: cargando
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: ColoresSaman.naranja,
                     ),
-                  ),
-                  onPressed: () => _guardar(persona),
-                  child: const Text(
+                  )
+                : const Text(
                     'Guardar cambios',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                ),
+          ),
         ],
       ),
     );
   }
 
   /// Campos que dependen del actor del usuario.
-  List<Widget> _camposDelActor(Persona persona) => switch (persona) {
-    Estudiante() => [
-      _campo(
-        controller: _dato1Controller,
-        etiqueta: 'Carnet',
-        validator: Validadores.requerido,
-      ),
-      _campo(
-        controller: _dato2Controller,
-        etiqueta: 'Carrera',
-        validator: Validadores.requerido,
-      ),
-    ],
-    Entrenador() => [
-      _campo(
-        controller: _dato1Controller,
-        etiqueta: 'Especialidad',
-        validator: Validadores.requerido,
-      ),
-      _campo(
-        controller: _dato2Controller,
-        etiqueta: 'Años de experiencia',
-        validator: Validadores.aniosExperiencia,
-        teclado: TextInputType.number,
-      ),
-    ],
-    Administrador() => [
-      _campo(
-        controller: _dato1Controller,
-        etiqueta: 'Cargo',
-        validator: Validadores.requerido,
-      ),
-    ],
-    _ => const [],
-  };
-
-  Widget _campo({
-    required TextEditingController controller,
-    required String etiqueta,
-    required FormFieldValidator<String> validator,
-    TextInputType teclado = TextInputType.text,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: teclado,
-        decoration: _decoracion(etiqueta),
-        validator: validator,
-      ),
-    );
+  List<Widget> _camposDelActor(Persona persona) {
+    const espacio = SizedBox(height: 14);
+    return switch (persona) {
+      Estudiante() => [
+        CampoSeleccion(
+          etiqueta: 'Carrera',
+          opciones: Catalogos.carreras,
+          valor: _seleccion,
+          pista: 'Selecciona tu carrera',
+          alCambiar: (valor) => setState(() => _seleccion = valor),
+          validator: (v) =>
+              Validadores.opcion(v, Catalogos.carreras, campo: 'tu carrera'),
+        ),
+        espacio,
+      ],
+      Entrenador() => [
+        CampoSeleccion(
+          etiqueta: 'Especialidad',
+          opciones: Catalogos.especialidades,
+          valor: _seleccion,
+          pista: 'Selecciona tu especialidad',
+          alCambiar: (valor) => setState(() => _seleccion = valor),
+          validator: (v) => Validadores.opcion(
+            v,
+            Catalogos.especialidades,
+            campo: 'tu especialidad',
+          ),
+        ),
+        espacio,
+        CampoTexto(
+          etiqueta: 'Años de experiencia',
+          controller: _datoController,
+          teclado: TextInputType.number,
+          formateadores: Entradas.digitos(2),
+          validator: Validadores.aniosExperiencia,
+        ),
+        espacio,
+      ],
+      Administrador() => [
+        CampoTexto(
+          etiqueta: 'Cargo',
+          controller: _datoController,
+          formateadores: Entradas.textoDescriptivo,
+          validator: (v) => Validadores.textoDescriptivo(v, campo: 'tu cargo'),
+        ),
+        espacio,
+      ],
+      _ => const [],
+    };
   }
-
-  /// Dato que se muestra pero no se puede editar.
-  Widget _campoFijo(String etiqueta, String valor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        initialValue: valor,
-        enabled: false,
-        decoration: _decoracion(etiqueta),
-      ),
-    );
-  }
-
-  InputDecoration _decoracion(String etiqueta) => InputDecoration(
-    labelText: etiqueta,
-    labelStyle: const TextStyle(color: ColoresSaman.textoSecundario),
-    filled: true,
-    fillColor: ColoresSaman.gris,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(30),
-      borderSide: BorderSide.none,
-    ),
-  );
 
   Widget _buildSinPerfil(PerfilViewModel perfilViewModel) {
     if (perfilViewModel.estado == PerfilEstado.cargando) {
