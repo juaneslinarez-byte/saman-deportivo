@@ -20,6 +20,11 @@ abstract final class Rutas {
   // su pantalla en main.dart, la ruta muestra «En construcción».
   static const String catalogo = '/estudiante/catalogo';
   static const String misDisciplinas = '/estudiante/mis-disciplinas';
+
+  /// Confirmar la inscripción en una disciplina; recibe el Deporte elegido.
+  static const String confirmarInscripcion = '/estudiante/inscripcion';
+  static const String inscripcionConfirmada =
+      '/estudiante/inscripcion/confirmada';
   static const String disciplinasEntrenador = '/entrenador';
   static const String adminDeportes = '/admin/deportes';
   static const String adminUsuarios = '/admin/usuarios';
