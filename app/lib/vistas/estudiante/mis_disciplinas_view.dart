@@ -342,27 +342,65 @@ class _TarjetaActiva extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: ColoresSaman.rojo,
-              side: BorderSide(color: ColoresSaman.rojo.withValues(alpha: 0.4)),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: const StadiumBorder(),
-            ),
-            onPressed: bloqueada ? null : alCancelar,
-            child: cancelando
-                ? const SizedBox(
-                    height: 16,
-                    width: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: ColoresSaman.rojo,
-                    ),
-                  )
-                : const Text(
-                    'Cancelar inscripción',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColoresSaman.naranja,
+                  side: BorderSide(
+                    color: ColoresSaman.naranja.withValues(alpha: 0.5),
                   ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  shape: const StadiumBorder(),
+                ),
+                // Abre el historial filtrado por esta disciplina (RF-EST-06).
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  Rutas.miAsistencia,
+                  arguments: item.inscripcion.idDeporte,
+                ),
+                icon: const Icon(Icons.fact_check_outlined, size: 16),
+                label: const Text(
+                  'Ver mi asistencia',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              ),
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ColoresSaman.rojo,
+                  side: BorderSide(
+                    color: ColoresSaman.rojo.withValues(alpha: 0.4),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  shape: const StadiumBorder(),
+                ),
+                onPressed: bloqueada ? null : alCancelar,
+                child: cancelando
+                    ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ColoresSaman.rojo,
+                        ),
+                      )
+                    : const Text(
+                        'Cancelar inscripción',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+              ),
+            ],
           ),
         ],
       ),
@@ -417,7 +455,54 @@ class _TarjetaCancelada extends StatelessWidget {
               ),
             ),
           ],
+          const SizedBox(height: 14),
+          _VolverAInscribirme(deporte: item.deporte),
         ],
+      ),
+    );
+  }
+}
+
+/// Lleva a confirmar la inscripción otra vez; el repositorio reactiva la
+/// misma inscripción. Solo se habilita si la disciplina sigue en el catálogo
+/// y tiene cupo; si no, el botón dice por qué.
+class _VolverAInscribirme extends StatelessWidget {
+  const _VolverAInscribirme({required this.deporte});
+
+  final Deporte? deporte;
+
+  @override
+  Widget build(BuildContext context) {
+    final deporte = this.deporte;
+    final String? motivo = deporte == null || !deporte.visible
+        ? 'Disciplina no disponible'
+        : !deporte.hayCupo
+        ? 'Sin cupos'
+        : null;
+
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: ColoresSaman.naranja,
+        disabledForegroundColor: ColoresSaman.textoDiscreto,
+        side: BorderSide(
+          color: motivo == null
+              ? ColoresSaman.naranja.withValues(alpha: 0.5)
+              : ColoresSaman.textoDiscreto.withValues(alpha: 0.4),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: const StadiumBorder(),
+      ),
+      onPressed: motivo != null
+          ? null
+          : () => Navigator.pushNamed(
+              context,
+              Rutas.confirmarInscripcion,
+              arguments: deporte,
+            ),
+      icon: Icon(motivo == null ? Icons.replay : Icons.block, size: 16),
+      label: Text(
+        motivo ?? 'Volver a inscribirme',
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
       ),
     );
   }
