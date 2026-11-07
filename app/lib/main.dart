@@ -17,6 +17,7 @@ import 'vistas/auth/registro_view.dart';
 import 'vistas/bienvenida/bienvenida_view.dart';
 import 'vistas/estudiante/confirmar_inscripcion_view.dart';
 import 'vistas/estudiante/inscripcion_confirmada_view.dart';
+import 'vistas/estudiante/mis_disciplinas_view.dart';
 import 'vistas/inicio/en_construccion_view.dart';
 import 'vistas/inicio/inicio_view.dart';
 import 'vistas/perfil/editar_perfil_view.dart';
@@ -83,6 +84,7 @@ class MyApp extends StatelessWidget {
               const ConfirmarInscripcionView(),
           Rutas.inscripcionConfirmada: (context) =>
               const InscripcionConfirmadaView(),
+          Rutas.misDisciplinas: (context) => const MisDisciplinasView(),
         },
         // Las secciones cuyo módulo todavía no registró su pantalla.
         onUnknownRoute: EnConstruccionView.ruta,
