@@ -130,10 +130,7 @@ class _Listado extends StatelessWidget {
         _Filtros(viewModel: viewModel, alLimpiar: alLimpiar),
         const SizedBox(height: 20),
         if (deportes.isEmpty)
-          _Vacio(
-            hayDeportes: viewModel.totalDeportes > 0,
-            alLimpiar: alLimpiar,
-          )
+          _Vacio(hayDeportes: viewModel.totalDeportes > 0, alLimpiar: alLimpiar)
         else
           LayoutBuilder(
             builder: (context, restricciones) {

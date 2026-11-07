@@ -54,8 +54,7 @@ class CatalogoViewModel extends ChangeNotifier {
   int get totalDeportes => _deportes.length;
 
   /// Horario de un deporte (vacío si todavía no llega o no tiene sesiones).
-  List<Sesion> sesionesDe(String idDeporte) =>
-      _sesiones[idDeporte] ?? const [];
+  List<Sesion> sesionesDe(String idDeporte) => _sesiones[idDeporte] ?? const [];
 
   /// Deportes que cumplen todos los filtros activos: primero los que tienen
   /// cupo y luego por nombre.
