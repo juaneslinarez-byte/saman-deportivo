@@ -17,6 +17,7 @@ import 'vistas/auth/registro_view.dart';
 import 'vistas/bienvenida/bienvenida_view.dart';
 import 'vistas/estudiante/catalogo_view.dart';
 import 'vistas/estudiante/confirmar_inscripcion_view.dart';
+import 'vistas/estudiante/detalle_disciplina_view.dart';
 import 'vistas/estudiante/inscripcion_confirmada_view.dart';
 import 'vistas/estudiante/mis_disciplinas_view.dart';
 import 'vistas/inicio/en_construccion_view.dart';
@@ -82,6 +83,7 @@ class MyApp extends StatelessWidget {
           Rutas.editarPerfil: (context) => const EditarPerfilView(),
           Rutas.inicio: (context) => const InicioView(),
           Rutas.catalogo: (context) => const CatalogoView(),
+          Rutas.detalleDisciplina: (context) => const DetalleDisciplinaView(),
           Rutas.confirmarInscripcion: (context) =>
               const ConfirmarInscripcionView(),
           Rutas.inscripcionConfirmada: (context) =>
