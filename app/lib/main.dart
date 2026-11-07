@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'core/rutas.dart';
 import 'core/tema.dart';
 import 'firebase_options.dart';
+import 'repositorios/asistencia_repository_firebase.dart';
 import 'repositorios/auth_repository_firebase.dart';
 import 'repositorios/repositorios.dart';
 import 'repositorios/usuario_repository_firebase.dart';
@@ -40,6 +41,9 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider<AuthRepository>(create: (_) => AuthRepositoryFirebase()),
         Provider<UsuarioRepository>(create: (_) => UsuarioRepositoryFirebase()),
+        Provider<AsistenciaRepository>(
+          create: (_) => AsistenciaRepositoryFirebase(),
+        ),
         ChangeNotifierProvider<AuthViewModel>(
           create: (context) => AuthViewModel(
             authRepository: context.read<AuthRepository>(),
