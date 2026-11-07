@@ -29,6 +29,13 @@ abstract final class Rutas {
   static const String inscripcionConfirmada =
       '/estudiante/inscripcion/confirmada';
   static const String disciplinasEntrenador = '/entrenador';
+
+  /// Nómina, asistencia e historial de una disciplina del entrenador;
+  /// cada una recibe el Deporte elegido.
+  static const String nominaEntrenador = '/entrenador/nomina';
+  static const String asistenciaEntrenador = '/entrenador/asistencia';
+  static const String historialEntrenador = '/entrenador/historial';
+
   static const String adminDeportes = '/admin/deportes';
   static const String adminUsuarios = '/admin/usuarios';
 
