@@ -21,6 +21,9 @@ abstract final class Rutas {
   static const String catalogo = '/estudiante/catalogo';
   static const String misDisciplinas = '/estudiante/mis-disciplinas';
 
+  /// Detalle de una disciplina del catálogo; recibe el id del deporte.
+  static const String detalleDisciplina = '/estudiante/disciplina';
+
   /// Confirmar la inscripción en una disciplina; recibe el Deporte elegido.
   static const String confirmarInscripcion = '/estudiante/inscripcion';
   static const String inscripcionConfirmada =

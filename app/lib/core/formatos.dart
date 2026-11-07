@@ -82,6 +82,14 @@ abstract final class Entradas {
     LengthLimitingTextInputFormatter(50),
   ];
 
+  /// Buscador del catálogo: letras, números y guion (los códigos como
+  /// «FUT-01»).
+  static final List<TextInputFormatter> busqueda = [
+    FilteringTextInputFormatter.allow(RegExp('[${Formatos.letras}0-9 -]')),
+    const _EspaciosSimples(),
+    LengthLimitingTextInputFormatter(40),
+  ];
+
   static final List<TextInputFormatter> correo = [
     FilteringTextInputFormatter.deny(RegExp(r'\s')),
     const _Minusculas(),
