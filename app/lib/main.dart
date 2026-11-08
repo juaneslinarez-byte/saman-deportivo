@@ -17,6 +17,7 @@ import 'vistas/auth/registro_view.dart';
 import 'vistas/bienvenida/bienvenida_view.dart';
 import 'vistas/entrenador/disciplinas_entrenador_view.dart';
 import 'vistas/entrenador/nomina_view.dart';
+import 'vistas/entrenador/tomar_asistencia_view.dart';
 import 'vistas/estudiante/catalogo_view.dart';
 import 'vistas/estudiante/confirmar_inscripcion_view.dart';
 import 'vistas/estudiante/detalle_disciplina_view.dart';
@@ -96,6 +97,7 @@ class MyApp extends StatelessWidget {
           Rutas.disciplinasEntrenador: (context) =>
               const DisciplinasEntrenadorView(),
           Rutas.nominaEntrenador: (context) => const NominaView(),
+          Rutas.asistenciaEntrenador: (context) => const TomarAsistenciaView(),
         },
         // Las secciones cuyo módulo todavía no registró su pantalla.
         onUnknownRoute: EnConstruccionView.ruta,

@@ -53,6 +53,12 @@ abstract final class Formatos {
 
   static String correo(String texto) => texto.trim().toLowerCase();
 
+  /// «02/11/2026».
+  static String fecha(DateTime fecha) =>
+      '${fecha.day.toString().padLeft(2, '0')}/'
+      '${fecha.month.toString().padLeft(2, '0')}/'
+      '${fecha.year}';
+
   /// Cédula guardada siempre igual: «V-28123456».
   static String cedula(String prefijo, String numero) =>
       '$prefijo-${numero.trim()}';
