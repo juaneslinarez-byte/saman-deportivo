@@ -1,4 +1,6 @@
+import '../modelos/modelos.dart';
 import 'formatos.dart';
+import 'horarios.dart';
 
 /// Validadores de los formularios.
 ///
@@ -185,6 +187,24 @@ abstract final class Validadores {
     String campo = 'una opción',
   }) {
     if (valor == null || !opciones.contains(valor)) return 'Selecciona $campo';
+    return null;
+  }
+
+  /// Fecha de una clase al tomar la asistencia (RF-ENT-03): tiene que caer
+  /// el mismo día de la semana de la sesión y no puede estar en el futuro.
+  static String? fechaDeClase(DateTime? fecha, DiaSemana dia, {DateTime? hoy}) {
+    if (fecha == null) return 'Selecciona la fecha de la clase';
+    final ahora = hoy ?? DateTime.now();
+    final hoySinHora = DateTime(ahora.year, ahora.month, ahora.day);
+    if (DateTime(fecha.year, fecha.month, fecha.day).isAfter(hoySinHora)) {
+      return 'No puedes tomar la asistencia de una fecha futura';
+    }
+    if (Horarios.diaDe(fecha) != dia) {
+      final nombre = Horarios.nombreDia(dia);
+      // «los lunes», pero «los sábados» y «los domingos».
+      final plural = nombre.endsWith('o') ? '${nombre}s' : nombre;
+      return 'Esta clase es los $plural: elige una fecha que caiga $nombre';
+    }
     return null;
   }
 

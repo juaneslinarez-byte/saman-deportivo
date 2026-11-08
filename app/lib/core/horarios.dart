@@ -42,6 +42,13 @@ abstract final class Horarios {
     return '$h12:$minutos $sufijo';
   }
 
+  /// Nombre del día: «lunes» o, con [abreviado], «Lun».
+  static String nombreDia(DiaSemana dia, {bool abreviado = false}) =>
+      _nombre(dia, abreviado);
+
+  /// Día de la semana de una fecha: DateTime cuenta del 1 (lunes) al 7.
+  static DiaSemana diaDe(DateTime fecha) => DiaSemana.values[fecha.weekday - 1];
+
   /// «Lun», «Lun y Mié», «Lun, Mié y Vie».
   static String _unirDias(List<DiaSemana> dias, bool abreviado) {
     final nombres = [for (final dia in dias) _nombre(dia, abreviado)];
