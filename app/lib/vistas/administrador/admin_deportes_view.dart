@@ -5,9 +5,12 @@ import '../../core/colores.dart';
 import '../../core/formatos.dart';
 import '../../modelos/deporte.dart';
 import '../../repositorios/deporte_repository.dart';
+import '../../repositorios/usuario_repository.dart';
 import '../../viewmodels/admin_deportes_viewmodel.dart';
 import '../comun/campos_formulario.dart';
 import 'deporte_form_view.dart';
+import 'sesiones_cupos_view.dart';
+import 'admin_usuarios_view.dart';
 
 /// Pantalla de gestión de deportes para el administrador (RF-ADM-01, RF-ADM-02).
 class AdminDeportesView extends StatelessWidget {
@@ -16,8 +19,10 @@ class AdminDeportesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<AdminDeportesViewModel>(
-      create: (context) =>
-          AdminDeportesViewModel(context.read<DeporteRepository>()),
+      create: (context) => AdminDeportesViewModel(
+        context.read<DeporteRepository>(),
+        context.read<UsuarioRepository>(),
+      ),
       child: const _AdminDeportesCuerpo(),
     );
   }
@@ -53,6 +58,21 @@ class _AdminDeportesCuerpo extends StatelessWidget {
         backgroundColor: ColoresSaman.blanco,
         foregroundColor: ColoresSaman.azulOscuro,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.people_alt_outlined),
+            tooltip: 'Gestión de Usuarios',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const AdminUsuariosView(idAdminActual: 'admin_id_actual'),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: ColoresSaman.naranja,
@@ -323,10 +343,204 @@ class _TarjetaDeporte extends StatelessWidget {
                   onPressed: onEditar,
                 ),
               ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(
+                  Icons.calendar_month_outlined,
+                  color: ColoresSaman.azulOscuro,
+                ),
+                tooltip: 'Sesiones y Cupos',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SesionesCuposView(deporte: deporte),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.person_add_outlined,
+                  color: ColoresSaman.azulOscuro,
+                ),
+                tooltip: 'Asignar Entrenador',
+                onPressed: () => _asignarEntrenador(
+                  context,
+                  deporte,
+                  context.read<AdminDeportesViewModel>(),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: ColoresSaman.rojo,
+                ),
+                tooltip: 'Eliminar Deporte',
+                onPressed: () => _eliminarDeporte(
+                  context,
+                  deporte,
+                  context.read<AdminDeportesViewModel>(),
+                ),
+              ),
             ],
           ),
         ],
       ),
     );
   }
+}
+
+void _eliminarDeporte(
+  BuildContext context,
+  Deporte deporte,
+  AdminDeportesViewModel vm,
+) {
+  if (deporte.inscritos > 0) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('No se puede eliminar'),
+        content: Text(
+          'El deporte "${deporte.nombre}" tiene ${deporte.inscritos} alumnos inscritos.\n\n'
+          '¿Deseas ocultarlo del catálogo?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final exito = await vm.ocultarDeporte(deporte);
+              if (context.mounted) {
+                _avisar(context, exito, 'Deporte ocultado del catálogo.', vm);
+              }
+            },
+            child: const Text('Ocultar'),
+          ),
+        ],
+      ),
+    );
+  } else {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Eliminar Deporte'),
+        content: Text('¿Seguro que deseas eliminar "${deporte.nombre}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: ColoresSaman.rojo),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final exito = await vm.eliminarDeporte(deporte);
+              if (context.mounted) {
+                _avisar(context, exito, 'Deporte eliminado.', vm);
+              }
+            },
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: ColoresSaman.blanco),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+void _asignarEntrenador(
+  BuildContext context,
+  Deporte deporte,
+  AdminDeportesViewModel vm,
+) async {
+  final entrenadores = await vm.obtenerEntrenadores();
+  if (!context.mounted) return;
+
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text('Entrenador: ${deporte.nombre}'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: entrenadores.isEmpty
+            ? const Text('No hay entrenadores registrados.')
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: entrenadores.length,
+                itemBuilder: (context, index) {
+                  final e = entrenadores[index];
+                  final seleccionado = deporte.idEntrenador == e.id;
+                  return ListTile(
+                    title: Text('${e.nombre} ${e.apellido}'),
+                    subtitle: Text(e.correo),
+                    trailing: seleccionado
+                        ? const Icon(Icons.check, color: ColoresSaman.verde)
+                        : null,
+                    onTap: () async {
+                      Navigator.pop(ctx);
+                      final exito = await vm.asignarEntrenador(deporte, e.id);
+                      if (context.mounted) {
+                        _avisar(
+                          context,
+                          exito,
+                          'Entrenador asignado a ${deporte.nombre}.',
+                          vm,
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
+      ),
+      actions: [
+        if (deporte.idEntrenador != null)
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: ColoresSaman.rojo),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final exito = await vm.quitarEntrenador(deporte);
+              if (context.mounted) {
+                _avisar(
+                  context,
+                  exito,
+                  'Entrenador quitado. El deporte quedó oculto.',
+                  vm,
+                );
+              }
+            },
+            child: const Text('Quitar entrenador'),
+          ),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cerrar'),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Muestra el resultado de una acción: el éxito en verde o el error del
+/// ViewModel en rojo.
+void _avisar(
+  BuildContext context,
+  bool exito,
+  String mensajeExito,
+  AdminDeportesViewModel vm,
+) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        exito
+            ? mensajeExito
+            : vm.error ?? 'No se pudo completar la acción. Inténtalo de nuevo.',
+      ),
+      backgroundColor: exito ? ColoresSaman.verde : ColoresSaman.rojo,
+    ),
+  );
 }

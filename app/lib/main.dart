@@ -14,6 +14,7 @@ import 'repositorios/usuario_repository_firebase.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/perfil_viewmodel.dart';
 import 'vistas/administrador/admin_deportes_view.dart';
+import 'vistas/administrador/admin_usuarios_view.dart';
 import 'vistas/auth/login_view.dart';
 import 'vistas/auth/recuperar_password_vista.dart';
 import 'vistas/auth/registro_view.dart';
@@ -106,6 +107,9 @@ class MyApp extends StatelessWidget {
           Rutas.nominaEntrenador: (context) => const NominaView(),
           Rutas.asistenciaEntrenador: (context) => const TomarAsistenciaView(),
           Rutas.adminDeportes: (context) => const AdminDeportesView(),
+          Rutas.adminUsuarios: (context) => AdminUsuariosView(
+            idAdminActual: context.read<AuthViewModel>().idUsuarioActual ?? '',
+          ),
         },
         // Las secciones cuyo módulo todavía no registró su pantalla.
         onUnknownRoute: EnConstruccionView.ruta,

@@ -2,12 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../modelos/deporte.dart';
+import '../modelos/modelos.dart';
 import '../repositorios/deporte_repository.dart';
+import '../repositorios/usuario_repository.dart';
 
-/// ViewModel para la administración del catálogo de deportes (RF-ADM-01, RF-ADM-02).
+/// Gestión de deportes del administrador: alta, edición, publicación,
+/// eliminación y entrenador asignado (RF-ADM-01, RF-ADM-02, RF-ADM-04).
 class AdminDeportesViewModel extends ChangeNotifier {
+  AdminDeportesViewModel(this._deporteRepository, [this._usuarioRepository]) {
+    _escucharDeportes();
+  }
+
   final DeporteRepository _deporteRepository;
+  final UsuarioRepository? _usuarioRepository;
 
   List<Deporte> _deportes = [];
   List<Deporte> _deportesFiltrados = [];
@@ -16,15 +23,10 @@ class AdminDeportesViewModel extends ChangeNotifier {
   String? _error;
   StreamSubscription<List<Deporte>>? _deportesSub;
 
-  AdminDeportesViewModel(this._deporteRepository) {
-    _escucharDeportes();
-  }
-
   List<Deporte> get deportes => _deportesFiltrados;
   bool get cargando => _cargando;
   String? get error => _error;
 
-  /// Observa todos los deportes (visibles y ocultos) en tiempo real (RF-ADM-01).
   void _escucharDeportes() {
     _cargando = true;
     _error = null;
@@ -38,9 +40,10 @@ class AdminDeportesViewModel extends ChangeNotifier {
             _deportes = lista;
             _aplicarFiltro();
             _cargando = false;
+            _error = null;
             notifyListeners();
           },
-          onError: (Object e) {
+          onError: (Object _) {
             _cargando = false;
             _error = 'No se pudieron cargar los deportes.';
             notifyListeners();
@@ -48,7 +51,6 @@ class AdminDeportesViewModel extends ChangeNotifier {
         );
   }
 
-  /// Filtra la lista por nombre o por código de disciplina.
   void buscar(String texto) {
     _filtroBusqueda = texto.trim().toLowerCase();
     _aplicarFiltro();
@@ -58,20 +60,15 @@ class AdminDeportesViewModel extends ChangeNotifier {
   void _aplicarFiltro() {
     if (_filtroBusqueda.isEmpty) {
       _deportesFiltrados = List.from(_deportes);
-    } else {
-      _deportesFiltrados = _deportes.where((deporte) {
-        final nombreCoincide = deporte.nombre.toLowerCase().contains(
-          _filtroBusqueda,
-        );
-        final codigoCoincide = deporte.codigo.toLowerCase().contains(
-          _filtroBusqueda,
-        );
-        return nombreCoincide || codigoCoincide;
-      }).toList();
+      return;
     }
+    _deportesFiltrados = _deportes.where((deporte) {
+      return deporte.nombre.toLowerCase().contains(_filtroBusqueda) ||
+          deporte.codigo.toLowerCase().contains(_filtroBusqueda) ||
+          deporte.lugar.toLowerCase().contains(_filtroBusqueda);
+    }).toList();
   }
 
-  /// Verifica la unicidad del código independientemente de mayúsculas/minúsculas.
   bool esCodigoUnico(String codigo, {String? idDeporteActual}) {
     final codigoNormalizado = codigo.trim().toLowerCase();
     return !_deportes.any(
@@ -81,7 +78,9 @@ class AdminDeportesViewModel extends ChangeNotifier {
     );
   }
 
-  /// Crea o actualiza un deporte validando el código único (RF-ADM-01).
+  /// Crea o edita un deporte. Un deporte nuevo nace oculto y con todos los
+  /// cupos libres; al editar, los cupos disponibles se recalculan para que
+  /// los inscritos no cambien.
   Future<bool> guardarDeporte({
     String? id,
     required String codigo,
@@ -104,35 +103,41 @@ class AdminDeportesViewModel extends ChangeNotifier {
 
     try {
       if (id == null) {
-        /// Un deporte nuevo se crea oculto (RF-ADM-01).
-        final nuevoDeporte = Deporte(
-          id: '',
-          codigo: codigoLimpio,
-          nombre: nombre.trim(),
-          descripcion: descripcion.trim(),
-          lugar: lugar.trim(),
-          cupoMaximo: cupoMaximo,
-          cuposDisponibles: cupoMaximo,
-          idEntrenador: null,
-          visible: false,
+        await _deporteRepository.crear(
+          Deporte(
+            id: '',
+            codigo: codigoLimpio,
+            nombre: nombre.trim(),
+            descripcion: descripcion.trim(),
+            lugar: lugar.trim(),
+            cupoMaximo: cupoMaximo,
+            cuposDisponibles: cupoMaximo,
+            idEntrenador: null,
+            visible: false,
+          ),
         );
-        await _deporteRepository.crear(nuevoDeporte);
       } else {
         final actual = _deportes.firstWhere((d) => d.id == id);
-        final inscritosActuales = actual.inscritos;
-        final actualizacion = actual.copyWith(
-          codigo: codigoLimpio,
-          nombre: nombre.trim(),
-          descripcion: descripcion.trim(),
-          lugar: lugar.trim(),
-          cupoMaximo: cupoMaximo,
-          cuposDisponibles: cupoMaximo - inscritosActuales,
+        if (cupoMaximo < actual.inscritos) {
+          _error =
+              'El cupo no puede ser menor que los inscritos actuales '
+              '(${actual.inscritos}).';
+          return false;
+        }
+        await _deporteRepository.actualizar(
+          actual.copyWith(
+            codigo: codigoLimpio,
+            nombre: nombre.trim(),
+            descripcion: descripcion.trim(),
+            lugar: lugar.trim(),
+            cupoMaximo: cupoMaximo,
+            cuposDisponibles: cupoMaximo - actual.inscritos,
+          ),
         );
-        await _deporteRepository.actualizar(actualizacion);
       }
       return true;
-    } catch (e) {
-      _error = 'No se pudo guardar la información del deporte.';
+    } catch (_) {
+      _error = 'No se pudo guardar el deporte. Inténtalo de nuevo.';
       return false;
     } finally {
       _cargando = false;
@@ -140,40 +145,93 @@ class AdminDeportesViewModel extends ChangeNotifier {
     }
   }
 
-  /// Alterna la visibilidad. Solo permite activar si tiene entrenador y sesiones (RF-ADM-01).
+  /// Solo se publica un deporte con entrenador y al menos una sesión.
   Future<bool> alternarVisibilidad(Deporte deporte) async {
+    _error = null;
     if (!deporte.visible) {
       if (deporte.idEntrenador == null || deporte.idEntrenador!.isEmpty) {
         _error = 'Asigna un entrenador antes de publicar el deporte.';
         notifyListeners();
         return false;
       }
-
-      final sesiones = await _deporteRepository
-          .observarSesiones(deporte.id)
-          .first;
-      if (sesiones.isEmpty) {
-        _error =
-            'Agrega al menos una sesión de entrenamiento antes de publicar.';
+      try {
+        final sesiones = await _deporteRepository
+            .observarSesiones(deporte.id)
+            .first;
+        if (sesiones.isEmpty) {
+          _error = 'Agrega al menos una sesión antes de publicar el deporte.';
+          notifyListeners();
+          return false;
+        }
+      } catch (_) {
+        _error = 'No se pudieron revisar las sesiones. Inténtalo de nuevo.';
         notifyListeners();
         return false;
       }
     }
+    return _actualizar(
+      deporte.copyWith(visible: !deporte.visible),
+      'No se pudo cambiar la visibilidad. Inténtalo de nuevo.',
+    );
+  }
 
-    _cargando = true;
-    _error = null;
-    notifyListeners();
-
+  /// Entrenadores registrados, para asignarlos a un deporte.
+  Future<List<Persona>> obtenerEntrenadores() async {
+    final repositorio = _usuarioRepository;
+    if (repositorio == null) return [];
     try {
-      final deporteActualizado = deporte.copyWith(visible: !deporte.visible);
-      await _deporteRepository.actualizar(deporteActualizado);
-      return true;
-    } catch (e) {
-      _error = 'Ocurrió un error al cambiar la visibilidad.';
-      return false;
-    } finally {
-      _cargando = false;
+      return await repositorio.listar(actor: Actor.entrenador);
+    } catch (_) {
+      _error = 'No se pudieron cargar los entrenadores.';
       notifyListeners();
+      return [];
+    }
+  }
+
+  Future<bool> asignarEntrenador(Deporte deporte, String idEntrenador) =>
+      _actualizar(
+        deporte.copyWith(idEntrenador: idEntrenador),
+        'No se pudo asignar el entrenador. Inténtalo de nuevo.',
+      );
+
+  /// Sin entrenador, el deporte deja de mostrarse en el catálogo.
+  Future<bool> quitarEntrenador(Deporte deporte) => _actualizar(
+    deporte.copyWith(quitarEntrenador: true, visible: false),
+    'No se pudo quitar el entrenador. Inténtalo de nuevo.',
+  );
+
+  Future<bool> ocultarDeporte(Deporte deporte) => _actualizar(
+    deporte.copyWith(visible: false),
+    'No se pudo ocultar el deporte. Inténtalo de nuevo.',
+  );
+
+  /// Un deporte con inscritos no se elimina (RF-SIS-09): se ofrece ocultarlo.
+  Future<bool> eliminarDeporte(Deporte deporte) async {
+    _error = null;
+    if (deporte.inscritos > 0) {
+      _error = 'No se puede eliminar un deporte con inscritos.';
+      notifyListeners();
+      return false;
+    }
+    try {
+      await _deporteRepository.eliminar(deporte.id);
+      return true;
+    } catch (_) {
+      _error = 'No se pudo eliminar el deporte. Inténtalo de nuevo.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> _actualizar(Deporte deporte, String mensajeError) async {
+    _error = null;
+    try {
+      await _deporteRepository.actualizar(deporte);
+      return true;
+    } catch (_) {
+      _error = mensajeError;
+      notifyListeners();
+      return false;
     }
   }
 
