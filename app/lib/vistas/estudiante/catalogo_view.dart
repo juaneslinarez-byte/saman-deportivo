@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colores.dart';
+import '../../core/fotos.dart';
 import '../../core/formatos.dart';
 import '../../core/horarios.dart';
 import '../../core/rutas.dart';
@@ -380,23 +381,6 @@ class _Pildora extends StatelessWidget {
   }
 }
 
-/// Fotos que ya tiene la app; el resto de deportes usa un fondo de color.
-const _fotos = [
-  ('fútbol', 'assets/imagenes/futbol.jpg'),
-  ('futbol', 'assets/imagenes/futbol.jpg'),
-  ('baloncesto', 'assets/imagenes/baloncesto.jpg'),
-  ('tenis', 'assets/imagenes/tenis.jpg'),
-  ('voleibol', 'assets/imagenes/voleibol.jpg'),
-];
-
-String? _fotoDe(Deporte deporte) {
-  final nombre = deporte.nombre.toLowerCase();
-  for (final (clave, ruta) in _fotos) {
-    if (nombre.contains(clave)) return ruta;
-  }
-  return null;
-}
-
 class _TarjetaDisciplina extends StatelessWidget {
   const _TarjetaDisciplina({required this.deporte, required this.sesiones});
 
@@ -493,12 +477,13 @@ class _Foto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foto = _fotoDe(deporte);
-    const respaldo = ColoredBox(
-      color: ColoresSaman.naranjaSuave,
+    final foto = FotosDisciplinas.de(deporte.nombre);
+    // Sin foto: un degradado verde con el ícono de la disciplina.
+    final respaldo = DecoratedBox(
+      decoration: const BoxDecoration(gradient: ColoresSaman.degradadoNoche),
       child: Center(
         child: Icon(
-          Icons.sports_soccer_outlined,
+          FotosDisciplinas.iconoDe(deporte.nombre),
           size: 44,
           color: ColoresSaman.naranja,
         ),
