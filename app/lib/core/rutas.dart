@@ -40,6 +40,8 @@ abstract final class Rutas {
   static const String asistenciaEntrenador = '/entrenador/asistencia';
   static const String historialEntrenador = '/entrenador/historial';
 
+  /// Panel resumen del administrador, con las cifras del club.
+  static const String adminPanel = '/admin/panel';
   static const String adminDeportes = '/admin/deportes';
   static const String adminUsuarios = '/admin/usuarios';
 

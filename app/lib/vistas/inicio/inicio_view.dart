@@ -70,6 +70,12 @@ class InicioView extends StatelessWidget {
         ],
         Administrador() => const [
           SeccionInicio(
+            titulo: 'Panel resumen',
+            descripcion: 'Cifras del club y lo que requiere atención',
+            icono: Icons.insights_outlined,
+            ruta: Rutas.adminPanel,
+          ),
+          SeccionInicio(
             titulo: 'Deportes',
             descripcion: 'Alta, entrenadores, sesiones y cupos',
             icono: Icons.sports_outlined,

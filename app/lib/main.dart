@@ -17,6 +17,7 @@ import 'viewmodels/perfil_viewmodel.dart';
 import 'vistas/administrador/admin_deportes_view.dart';
 import 'vistas/administrador/admin_usuarios_view.dart';
 import 'vistas/administrador/pagos_admin_view.dart';
+import 'vistas/administrador/panel_admin_view.dart';
 import 'vistas/auth/login_view.dart';
 import 'vistas/auth/recuperar_password_vista.dart';
 import 'vistas/auth/registro_view.dart';
@@ -117,6 +118,7 @@ class MyApp extends StatelessWidget {
             idAdminActual: context.read<AuthViewModel>().idUsuarioActual ?? '',
           ),
           Rutas.adminPagos: (context) => const PagosAdminView(),
+          Rutas.adminPanel: (context) => const PanelAdminView(),
           Rutas.historialEntrenador: (context) =>
               const HistorialAsistenciaView(),
         },
