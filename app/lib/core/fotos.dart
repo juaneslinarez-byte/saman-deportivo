@@ -17,6 +17,7 @@ abstract final class FotosDisciplinas {
     ('natacion', 'assets/imagenes/natacion.jpg'),
     ('karate', 'assets/imagenes/karate.jpg'),
     ('atletismo', 'assets/imagenes/portada_pista.jpg'),
+    ('ajedrez', 'assets/imagenes/ajedrez.jpg'),
   ];
 
   static const _iconos = [
