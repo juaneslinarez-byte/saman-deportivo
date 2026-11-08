@@ -9,6 +9,7 @@ import '../../repositorios/usuario_repository.dart';
 import '../../viewmodels/admin_deportes_viewmodel.dart';
 import '../comun/campos_formulario.dart';
 import 'deporte_form_view.dart';
+import 'inscritos_admin_view.dart';
 import 'sesiones_cupos_view.dart';
 import 'admin_usuarios_view.dart';
 
@@ -356,6 +357,22 @@ class _TarjetaDeporte extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(
+                  Icons.groups_outlined,
+                  color: ColoresSaman.azulOscuro,
+                ),
+                tooltip: 'Inscritos',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          InscritosAdminView(deporte: deporte),
+                    ),
+                  );
+                },
+              ),
               IconButton(
                 icon: const Icon(
                   Icons.calendar_month_outlined,

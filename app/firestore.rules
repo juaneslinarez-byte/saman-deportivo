@@ -168,7 +168,16 @@ service cloud.firestore {
       // nombre y carnet, y descontando un cupo en la misma operación. Como
       // el id es idEstudiante_idDeporte, no puede inscribirse dos veces en
       // el mismo deporte (RF-SIS-01, RF-SIS-02, RF-SIS-04, RNF-07).
-      allow create: if esEstudianteSolvente()
+      //
+      // El administrador también inscribe a un estudiante desde la nómina
+      // de la disciplina (RF-ADM-04), con el mismo control del cupo.
+      allow create: if (esAdministrador()
+        && idInscripcion == request.resource.data.idEstudiante + '_' + request.resource.data.idDeporte
+        && request.resource.data.estado == 'activa'
+        && deporteAntes(request.resource.data.idDeporte).cuposDisponibles > 0
+        && deporteDespues(request.resource.data.idDeporte).cuposDisponibles
+             == deporteAntes(request.resource.data.idDeporte).cuposDisponibles - 1)
+        || (esEstudianteSolvente()
         && idInscripcion == request.auth.uid + '_' + request.resource.data.idDeporte
         && request.resource.data.idEstudiante == request.auth.uid
         && request.resource.data.estado == 'activa'
@@ -176,7 +185,7 @@ service cloud.firestore {
         && request.resource.data.carnetEstudiante == miPerfil().carnet
         && deporteAntes(request.resource.data.idDeporte).cuposDisponibles > 0
         && deporteDespues(request.resource.data.idDeporte).cuposDisponibles
-             == deporteAntes(request.resource.data.idDeporte).cuposDisponibles - 1;
+             == deporteAntes(request.resource.data.idDeporte).cuposDisponibles - 1);
 
       // Cancelar, o volver a inscribirse después de cancelar: el propio
       // estudiante solo cambia el estado (y la fecha al volver), y el cupo
