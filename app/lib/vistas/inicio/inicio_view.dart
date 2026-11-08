@@ -51,6 +51,12 @@ class InicioView extends StatelessWidget {
             icono: Icons.event_available_outlined,
             ruta: Rutas.misDisciplinas,
           ),
+          SeccionInicio(
+            titulo: 'Mi solvencia',
+            descripcion: 'Paga la cuota y revisa tus pagos',
+            icono: Icons.payments_outlined,
+            ruta: Rutas.solvencia,
+          ),
           _miPerfil,
         ],
         Entrenador() => const [
@@ -74,6 +80,12 @@ class InicioView extends StatelessWidget {
             descripcion: 'Habilitar, solvencia y entrenadores',
             icono: Icons.manage_accounts_outlined,
             ruta: Rutas.adminUsuarios,
+          ),
+          SeccionInicio(
+            titulo: 'Pagos de solvencia',
+            descripcion: 'Aprueba o rechaza los pagos en revisión',
+            icono: Icons.request_quote_outlined,
+            ruta: Rutas.adminPagos,
           ),
           _miPerfil,
         ],
@@ -291,16 +303,22 @@ class _AvisoSolvencia extends StatelessWidget {
         color: ColoresSaman.naranjaSuave,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.info_outline, color: ColoresSaman.naranja),
-          SizedBox(width: 12),
-          Expanded(
+          const Icon(Icons.info_outline, color: ColoresSaman.naranja),
+          const SizedBox(width: 12),
+          const Expanded(
             child: Text(
-              'Aún no estás solvente. Podrás inscribirte en una disciplina '
-              'cuando el administrador confirme tu pago.',
+              'Aún no estás solvente. Paga la cuota del trimestre y podrás '
+              'inscribirte cuando el administrador confirme tu pago.',
               style: TextStyle(color: ColoresSaman.azulOscuro, fontSize: 13),
             ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: ColoresSaman.naranja),
+            onPressed: () => Navigator.pushNamed(context, Rutas.solvencia),
+            child: const Text('Pagar'),
           ),
         ],
       ),

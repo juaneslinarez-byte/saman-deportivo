@@ -144,12 +144,14 @@ void main() {
     expect(rutas(_estudiante), [
       Rutas.catalogo,
       Rutas.misDisciplinas,
+      Rutas.solvencia,
       Rutas.perfil,
     ]);
     expect(rutas(_entrenadora), [Rutas.disciplinasEntrenador, Rutas.perfil]);
     expect(rutas(_administrador), [
       Rutas.adminDeportes,
       Rutas.adminUsuarios,
+      Rutas.adminPagos,
       Rutas.perfil,
     ]);
   });

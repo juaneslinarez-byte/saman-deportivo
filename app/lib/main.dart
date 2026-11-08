@@ -9,12 +9,14 @@ import 'repositorios/asistencia_repository_firebase.dart';
 import 'repositorios/auth_repository_firebase.dart';
 import 'repositorios/deporte_repository_firebase.dart';
 import 'repositorios/inscripcion_repository_firebase.dart';
+import 'repositorios/pago_repository_firebase.dart';
 import 'repositorios/repositorios.dart';
 import 'repositorios/usuario_repository_firebase.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/perfil_viewmodel.dart';
 import 'vistas/administrador/admin_deportes_view.dart';
 import 'vistas/administrador/admin_usuarios_view.dart';
+import 'vistas/administrador/pagos_admin_view.dart';
 import 'vistas/auth/login_view.dart';
 import 'vistas/auth/recuperar_password_vista.dart';
 import 'vistas/auth/registro_view.dart';
@@ -29,6 +31,7 @@ import 'vistas/estudiante/detalle_disciplina_view.dart';
 import 'vistas/estudiante/inscripcion_confirmada_view.dart';
 import 'vistas/estudiante/mi_asistencia_view.dart';
 import 'vistas/estudiante/mis_disciplinas_view.dart';
+import 'vistas/estudiante/solvencia_view.dart';
 import 'vistas/inicio/en_construccion_view.dart';
 import 'vistas/inicio/inicio_view.dart';
 import 'vistas/perfil/editar_perfil_view.dart';
@@ -60,6 +63,7 @@ class MyApp extends StatelessWidget {
         Provider<AsistenciaRepository>(
           create: (_) => AsistenciaRepositoryFirebase(),
         ),
+        Provider<PagoRepository>(create: (_) => PagoRepositoryFirebase()),
         ChangeNotifierProvider<AuthViewModel>(
           create: (context) => AuthViewModel(
             authRepository: context.read<AuthRepository>(),
@@ -103,6 +107,7 @@ class MyApp extends StatelessWidget {
               const InscripcionConfirmadaView(),
           Rutas.misDisciplinas: (context) => const MisDisciplinasView(),
           Rutas.miAsistencia: (context) => const MiAsistenciaView(),
+          Rutas.solvencia: (context) => const SolvenciaView(),
           Rutas.disciplinasEntrenador: (context) =>
               const DisciplinasEntrenadorView(),
           Rutas.nominaEntrenador: (context) => const NominaView(),
@@ -111,6 +116,7 @@ class MyApp extends StatelessWidget {
           Rutas.adminUsuarios: (context) => AdminUsuariosView(
             idAdminActual: context.read<AuthViewModel>().idUsuarioActual ?? '',
           ),
+          Rutas.adminPagos: (context) => const PagosAdminView(),
           Rutas.historialEntrenador: (context) =>
               const HistorialAsistenciaView(),
         },
