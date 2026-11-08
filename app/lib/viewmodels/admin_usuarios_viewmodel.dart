@@ -18,6 +18,15 @@ class AdminUsuariosViewModel extends ChangeNotifier {
   String? get error => _error;
   Actor? get filtroActor => _filtroActor;
 
+  /// Cuántos usuarios hay de un actor (o en total, con null), sin contar
+  /// la búsqueda, para los contadores de los filtros.
+  int cuantos(Actor? actor) => actor == null
+      ? _todosLosUsuarios.length
+      : _todosLosUsuarios.where((u) => u.actor == actor).length;
+
+  int get deshabilitados =>
+      _todosLosUsuarios.where((u) => !u.habilitado).length;
+
   AdminUsuariosViewModel(this._usuarioRepository) {
     cargarUsuarios();
   }

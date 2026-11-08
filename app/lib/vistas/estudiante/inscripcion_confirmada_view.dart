@@ -20,18 +20,10 @@ class InscripcionConfirmadaView extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Inscripción',
-          style: TextStyle(
-            color: ColoresSaman.azulOscuro,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
         // Se sale con los botones de la tarjeta, no con la flecha.
         automaticallyImplyLeading: false,
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
       ),
       body: Center(
         child: SingleChildScrollView(

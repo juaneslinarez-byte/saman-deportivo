@@ -56,9 +56,6 @@ class _AdminDeportesCuerpo extends StatelessWidget {
           'Gestión de Deportes',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.people_alt_outlined),

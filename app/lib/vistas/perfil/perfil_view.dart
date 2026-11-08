@@ -25,10 +25,6 @@ class PerfilView extends StatelessWidget {
           'Mi Perfil',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
-        centerTitle: true,
       ),
       body: Center(
         child: SingleChildScrollView(

@@ -41,9 +41,6 @@ class _Pantalla extends StatelessWidget {
           'Panel resumen',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
         actions: [
           if (vm.estado == PanelAdminEstado.listo)
             IconButton(
