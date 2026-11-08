@@ -471,7 +471,7 @@ class _Portada extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        // Degradado azul oscuro para que el texto blanco se lea sobre la foto.
+        // Degradado verde Samán para que el texto blanco se lea sobre la foto.
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -479,9 +479,9 @@ class _Portada extends StatelessWidget {
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
-                  const Color(0xFF0F172A).withValues(alpha: 0.88),
-                  const Color(0xFF0F172A).withValues(alpha: 0.55),
-                  const Color(0xFF0F172A).withValues(alpha: 0.25),
+                  ColoresSaman.azulNoche.withValues(alpha: 0.88),
+                  ColoresSaman.azulNoche.withValues(alpha: 0.55),
+                  ColoresSaman.azulNoche.withValues(alpha: 0.25),
                 ],
               ),
             ),

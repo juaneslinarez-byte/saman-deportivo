@@ -74,17 +74,17 @@ class _SesionesCuposBody extends StatelessWidget {
                       _infoChip(
                         'Inscritos',
                         '${vm.deporte.inscritos}',
-                        Colors.blue,
+                        ColoresSaman.azulNoche,
                       ),
                       _infoChip(
                         'Disponibles',
                         '${vm.deporte.cuposDisponibles}',
-                        Colors.green,
+                        ColoresSaman.verde,
                       ),
                       _infoChip(
                         'Cupo Máximo',
                         '${vm.deporte.cupoMaximo}',
-                        Colors.purple,
+                        ColoresSaman.naranja,
                       ),
                     ],
                   ),
@@ -143,7 +143,10 @@ class _SesionesCuposBody extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
+                          icon: const Icon(
+                            Icons.edit,
+                            color: ColoresSaman.azulNoche,
+                          ),
                           onPressed: () => _mostrarDialogoFormularioSesion(
                             context,
                             vm,
