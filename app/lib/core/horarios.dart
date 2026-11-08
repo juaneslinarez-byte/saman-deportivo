@@ -42,6 +42,50 @@ abstract final class Horarios {
     return '$h12:$minutos $sufijo';
   }
 
+  /// Próxima clase a partir de [ahora]: la sesión y el momento en que
+  /// empieza. Es null si no hay sesiones.
+  static ({Sesion sesion, DateTime inicio})? proximaClase(
+    Iterable<Sesion> sesiones,
+    DateTime ahora,
+  ) {
+    ({Sesion sesion, DateTime inicio})? proxima;
+    for (final sesion in sesiones) {
+      final partes = sesion.horaInicio.split(':');
+      final h = int.tryParse(partes.first) ?? 0;
+      final m = partes.length > 1 ? int.tryParse(partes[1]) ?? 0 : 0;
+      // weekday va de 1 (lunes) a 7; el índice de DiaSemana, de 0 a 6.
+      final dias = (sesion.dia.index + 1 - ahora.weekday) % 7;
+      var inicio = DateTime(ahora.year, ahora.month, ahora.day + dias, h, m);
+      if (inicio.isBefore(ahora)) {
+        inicio = DateTime(inicio.year, inicio.month, inicio.day + 7, h, m);
+      }
+      if (proxima == null || inicio.isBefore(proxima.inicio)) {
+        proxima = (sesion: sesion, inicio: inicio);
+      }
+    }
+    return proxima;
+  }
+
+  /// «Hoy, 4:00 PM», «Mañana, 4:00 PM» o «Jueves, 4:00 PM».
+  static String cuando(DateTime inicio, DateTime ahora) {
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+    final dia = DateTime(inicio.year, inicio.month, inicio.day);
+    final diferencia = dia.difference(hoy).inDays;
+    final hora = hora12(
+      '${inicio.hour.toString().padLeft(2, '0')}:'
+      '${inicio.minute.toString().padLeft(2, '0')}',
+    );
+    final nombre = switch (diferencia) {
+      0 => 'Hoy',
+      1 => 'Mañana',
+      _ => () {
+        final n = nombreDia(diaDe(inicio));
+        return n[0].toUpperCase() + n.substring(1);
+      }(),
+    };
+    return '$nombre, $hora';
+  }
+
   /// Nombre del día: «lunes» o, con [abreviado], «Lun».
   static String nombreDia(DiaSemana dia, {bool abreviado = false}) =>
       _nombre(dia, abreviado);

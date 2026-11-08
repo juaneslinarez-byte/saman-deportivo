@@ -147,7 +147,11 @@ void main() {
       Rutas.solvencia,
       Rutas.perfil,
     ]);
-    expect(rutas(_entrenadora), [Rutas.disciplinasEntrenador, Rutas.perfil]);
+    expect(rutas(_entrenadora), [
+      Rutas.panelEntrenador,
+      Rutas.disciplinasEntrenador,
+      Rutas.perfil,
+    ]);
     expect(rutas(_administrador), [
       Rutas.adminPanel,
       Rutas.adminDeportes,

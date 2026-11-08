@@ -61,6 +61,12 @@ class InicioView extends StatelessWidget {
         ],
         Entrenador() => const [
           SeccionInicio(
+            titulo: 'Mi resumen',
+            descripcion: 'Inscritos, asistencia y próxima clase',
+            icono: Icons.insights_outlined,
+            ruta: Rutas.panelEntrenador,
+          ),
+          SeccionInicio(
             titulo: 'Mis disciplinas',
             descripcion: 'Nómina, asistencia e historial',
             icono: Icons.groups_outlined,

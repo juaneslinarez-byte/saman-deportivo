@@ -34,6 +34,9 @@ abstract final class Rutas {
   static const String solvencia = '/estudiante/solvencia';
   static const String disciplinasEntrenador = '/entrenador';
 
+  /// Resumen del entrenador: inscritos, asistencia y próxima clase.
+  static const String panelEntrenador = '/entrenador/panel';
+
   /// Nómina, asistencia e historial de una disciplina del entrenador;
   /// cada una recibe el Deporte elegido.
   static const String nominaEntrenador = '/entrenador/nomina';
