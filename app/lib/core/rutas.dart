@@ -18,6 +18,8 @@ abstract final class Rutas {
 
   // Entradas de cada módulo desde el inicio. Mientras un módulo no registre
   // su pantalla en main.dart, la ruta muestra «En construcción».
+  /// Resumen del estudiante: próxima clase, asistencia y solvencia.
+  static const String panelEstudiante = '/estudiante/panel';
   static const String catalogo = '/estudiante/catalogo';
   static const String misDisciplinas = '/estudiante/mis-disciplinas';
 

@@ -142,6 +142,7 @@ void main() {
         InicioView.seccionesPara(persona).map((s) => s.ruta).toList();
 
     expect(rutas(_estudiante), [
+      Rutas.panelEstudiante,
       Rutas.catalogo,
       Rutas.misDisciplinas,
       Rutas.solvencia,
