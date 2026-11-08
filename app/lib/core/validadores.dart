@@ -143,16 +143,21 @@ abstract final class Validadores {
     return null;
   }
 
-  /// Número de la cédula, sin prefijo ni puntos. Venezolana (V): de 6 a 8
-  /// dígitos; extranjera (E): de 6 a 9. No acepta números de relleno como
+  /// Número de la cédula, sin prefijo ni puntos. Venezolana (V): 7 u 8
+  /// dígitos; extranjera (E): de 7 a 9. No acepta números de relleno como
   /// 11111111 o 12345678.
   static String? cedula(String? valor, {String prefijo = 'V'}) {
     final numero = valor?.trim() ?? '';
     if (numero.isEmpty) return 'Escribe tu número de cédula';
     if (!RegExp(r'^\d+$').hasMatch(numero)) return 'Usa solo números';
+    // Las cédulas venezolanas tienen 7 dígitos (las más antiguas) u 8 (las
+    // de quienes nacieron desde los años 90, como los estudiantes de hoy).
+    // Las de extranjeros pueden llegar a 9.
     final maximo = prefijo == 'E' ? 9 : 8;
-    if (numero.length < 6 || numero.length > maximo) {
-      return 'Debe tener entre 6 y $maximo dígitos';
+    if (numero.length < 7 || numero.length > maximo) {
+      return prefijo == 'E'
+          ? 'Debe tener entre 7 y 9 dígitos'
+          : 'Debe tener 7 u 8 dígitos';
     }
     if (numero.startsWith('0')) return 'No puede empezar por 0';
     if (_esRelleno(numero)) return 'Escribe tu cédula real';
