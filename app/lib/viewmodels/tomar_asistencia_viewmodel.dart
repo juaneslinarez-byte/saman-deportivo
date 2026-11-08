@@ -69,6 +69,11 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
   StreamSubscription<List<Sesion>>? _sesionesSubscription;
   StreamSubscription<List<Inscripcion>>? _inscritosSubscription;
   StreamSubscription<List<Asistencia>>? _registroSubscription;
+  StreamSubscription<List<Asistencia>>? _tomadasSubscription;
+
+  /// Toda la asistencia del deporte, para marcar en el calendario los días
+  /// que ya se tomaron.
+  List<Asistencia> _registrosDeporte = const [];
 
   TomarAsistenciaEstado get estado => _estado;
 
@@ -80,6 +85,34 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
 
   Sesion? get sesion => _sesion;
   DateTime? get fecha => _fecha;
+  DateTime get hoy => _reloj();
+
+  /// Días de la sesión elegida en los que ya se tomó la asistencia.
+  Set<DateTime> get fechasTomadas {
+    final sesion = _sesion;
+    if (sesion == null) return const {};
+    return {
+      for (final a in _registrosDeporte)
+        if (a.idSesion == sesion.id)
+          DateTime(a.fecha.year, a.fecha.month, a.fecha.day),
+    };
+  }
+
+  /// La fecha más antigua que se ofrece en el calendario.
+  DateTime get primeraFecha {
+    final fechas = fechasDisponibles;
+    if (fechas.isEmpty) return hoy;
+    return fechas.reduce((a, b) => a.isBefore(b) ? a : b);
+  }
+
+  /// ¿Se puede elegir este día en el calendario? Solo los días en que tocó
+  /// la sesión, sin futuro y dentro de las semanas que se ofrecen.
+  bool esFechaElegible(DateTime dia) {
+    final sesion = _sesion;
+    if (sesion == null) return false;
+    if (dia.isBefore(primeraFecha)) return false;
+    return Validadores.fechaDeClase(dia, sesion.dia, hoy: _reloj()) == null;
+  }
 
   /// Mensaje si la fecha no sirve para la sesión elegida.
   String? get errorFecha => _sesion == null
@@ -160,6 +193,15 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
     _inscritosSubscription = inscripcionRepository
         .observarPorDeporte(deporte.id)
         .listen(_alLlegarInscritos, onError: _alFallarCarga);
+
+    // Si falla, el calendario simplemente no marca los días tomados.
+    _tomadasSubscription?.cancel();
+    _tomadasSubscription = asistenciaRepository
+        .observarPorDeporte(deporte.id)
+        .listen((lista) {
+          _registrosDeporte = lista;
+          _notificar();
+        }, onError: (Object _) {});
   }
 
   void _alLlegarSesiones(List<Sesion> sesiones) {
@@ -370,6 +412,7 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
     _sesionesSubscription?.cancel();
     _inscritosSubscription?.cancel();
     _registroSubscription?.cancel();
+    _tomadasSubscription?.cancel();
     super.dispose();
   }
 }

@@ -7,6 +7,7 @@ import '../../core/horarios.dart';
 import '../../modelos/modelos.dart';
 import '../../repositorios/repositorios.dart';
 import '../../viewmodels/tomar_asistencia_viewmodel.dart';
+import '../comun/calendario_clases.dart';
 import '../comun/campos_formulario.dart';
 import 'componentes_entrenador.dart';
 
@@ -306,12 +307,7 @@ class _SelectorClase extends StatelessWidget {
               .map((entrada) => entrada.key)
               .firstOrNull;
 
-    final fechasPorTexto = {
-      for (final fecha in viewModel.fechasDisponibles)
-        _textoFecha(fecha): fecha,
-    };
     final fecha = viewModel.fecha;
-    final textoFecha = fecha == null ? null : _textoFecha(fecha);
     final errorFecha = viewModel.errorFecha;
 
     return Container(
@@ -336,18 +332,32 @@ class _SelectorClase extends StatelessWidget {
           ),
           if (sesion != null) ...[
             const SizedBox(height: 16),
-            CampoSeleccion(
-              key: ValueKey('fecha-${sesion.id}-$fecha'),
-              etiqueta: 'Fecha de la clase',
-              pista: 'Elige la fecha',
-              opciones: fechasPorTexto.keys.toList(),
-              valor: fechasPorTexto.containsKey(textoFecha) ? textoFecha : null,
-              alCambiar: viewModel.guardando
-                  ? (_) {}
-                  : (texto) {
-                      final elegida = fechasPorTexto[texto];
-                      if (elegida != null) viewModel.elegirFecha(elegida);
-                    },
+            const Text(
+              'Fecha de la clase',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: ColoresSaman.textoCampo,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              fecha == null ? 'Toca un día de clase' : _textoFecha(fecha),
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: ColoresSaman.azulOscuro,
+              ),
+            ),
+            const SizedBox(height: 8),
+            CalendarioClases(
+              seleccionado: fecha,
+              habilitado: viewModel.esFechaElegible,
+              alElegir: viewModel.elegirFecha,
+              primerDia: viewModel.primeraFecha,
+              hoy: viewModel.hoy,
+              marcados: viewModel.fechasTomadas,
+              activo: !viewModel.guardando,
             ),
             if (errorFecha != null) ...[
               const SizedBox(height: 8),
