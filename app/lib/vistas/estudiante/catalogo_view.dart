@@ -8,6 +8,7 @@ import '../../core/rutas.dart';
 import '../../modelos/modelos.dart';
 import '../../repositorios/repositorios.dart';
 import '../../viewmodels/catalogo_viewmodel.dart';
+import '../comun/disenio.dart';
 
 /// Catálogo de disciplinas del estudiante (RF-EST-02, RF-EST-03): buscador,
 /// filtros por cupos, día y franja, y una tarjeta por disciplina.
@@ -136,12 +137,18 @@ class _Listado extends StatelessWidget {
                 spacing: espacio,
                 runSpacing: espacio,
                 children: [
-                  for (final deporte in deportes)
+                  for (final (i, deporte) in deportes.indexed)
                     SizedBox(
                       width: ancho,
-                      child: _TarjetaDisciplina(
-                        deporte: deporte,
-                        sesiones: viewModel.sesionesDe(deporte.id),
+                      child: Aparecer(
+                        // Cada tarjeta conserva su animación aunque los
+                        // filtros cambien su posición.
+                        key: ValueKey(deporte.id),
+                        retraso: Aparecer.escalonado(i, pasoMs: 50),
+                        child: _TarjetaDisciplina(
+                          deporte: deporte,
+                          sesiones: viewModel.sesionesDe(deporte.id),
+                        ),
                       ),
                     ),
                 ],
