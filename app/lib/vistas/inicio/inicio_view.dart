@@ -140,6 +140,23 @@ class InicioView extends StatelessWidget {
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
+          // Cualquier actor puede volver a la página principal (landing).
+          // En el teléfono queda solo el ícono para no apretar la barra.
+          if (MediaQuery.sizeOf(context).width >= 600)
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: ColoresSaman.azulOscuro,
+              ),
+              onPressed: () => Navigator.pushNamed(context, Rutas.bienvenida),
+              icon: const Icon(Icons.home_outlined),
+              label: const Text('Página principal'),
+            )
+          else
+            IconButton(
+              tooltip: 'Página principal',
+              icon: const Icon(Icons.home_outlined),
+              onPressed: () => Navigator.pushNamed(context, Rutas.bienvenida),
+            ),
           IconButton(
             tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout),
