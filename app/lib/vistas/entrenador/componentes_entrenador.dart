@@ -30,16 +30,8 @@ class MarcoEntrenador extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           titulo,
-          style: const TextStyle(
-            color: ColoresSaman.azulOscuro,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
         bottom: abajo,
       ),
       body: Align(

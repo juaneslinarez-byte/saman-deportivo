@@ -43,9 +43,6 @@ class _Pantalla extends StatelessWidget {
           'Inscritos: ${vm.deporte.nombre}',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
       ),
       body: switch (vm.estado) {
         InscritosAdminEstado.cargando => const Center(

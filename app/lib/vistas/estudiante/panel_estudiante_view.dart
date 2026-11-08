@@ -279,16 +279,8 @@ class _Marco extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Mi resumen',
-          style: TextStyle(
-            color: ColoresSaman.azulOscuro,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
       ),
       body: Align(
         alignment: Alignment.topCenter,

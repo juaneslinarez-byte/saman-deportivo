@@ -19,11 +19,7 @@ class EnConstruccionView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ColoresSaman.fondo,
-      appBar: AppBar(
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
-      ),
+      appBar: AppBar(),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),

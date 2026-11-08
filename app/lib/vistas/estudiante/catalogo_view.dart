@@ -59,16 +59,8 @@ class _PantallaState extends State<_Pantalla> {
       appBar: AppBar(
         title: const Text(
           'Catálogo',
-          style: TextStyle(
-            color: ColoresSaman.azulOscuro,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
       ),
       body: Align(
         alignment: Alignment.topCenter,

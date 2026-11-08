@@ -26,8 +26,9 @@ abstract final class ColoresSaman {
   /// Textos poco importantes, como el pie de las tarjetas.
   static const Color textoDiscreto = Color(0xFF94A3B8);
 
-  /// Fondo de las pantallas.
-  static const Color fondo = Color(0xFFF8F9FA);
+  /// Fondo de las pantallas: un gris con un toque azul, para que las
+  /// tarjetas blancas resalten.
+  static const Color fondo = Color(0xFFF2F4FA);
 
   /// Relleno de los campos y bordes suaves.
   static const Color gris = Color(0xFFF1F2F4);
@@ -40,4 +41,47 @@ abstract final class ColoresSaman {
 
   /// Fondo de las tarjetas.
   static const Color blanco = Colors.white;
+
+  // -------------------------------------------------------------------------
+  // Rediseño: azul noche para barras y portadas, y acentos para distinguir
+  // cada sección (el naranja sigue siendo el color de la marca).
+  // -------------------------------------------------------------------------
+
+  /// Barras superiores y portadas.
+  static const Color azulNoche = Color(0xFF0B1530);
+
+  /// Final del degradado de las portadas.
+  static const Color azulProfundo = Color(0xFF1B2B6B);
+
+  static const Color indigo = Color(0xFF6366F1);
+  static const Color cielo = Color(0xFF0EA5E9);
+  static const Color menta = Color(0xFF14B8A6);
+  static const Color violeta = Color(0xFF8B5CF6);
+  static const Color ambar = Color(0xFFF59E0B);
+  static const Color rosa = Color(0xFFEC4899);
+
+  /// Degradado de las portadas de cada pantalla.
+  static const LinearGradient degradadoNoche = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [azulNoche, azulProfundo],
+  );
+
+  /// Degradado de los botones y elementos destacados.
+  static const LinearGradient degradadoNaranja = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [naranja, Color(0xFFFF9F43)],
+  );
+
+  /// Acentos en orden, para dar un color distinto a cada tarjeta.
+  static const List<Color> acentos = [
+    naranja,
+    indigo,
+    menta,
+    violeta,
+    cielo,
+    rosa,
+    ambar,
+  ];
 }
