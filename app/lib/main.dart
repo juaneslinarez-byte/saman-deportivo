@@ -8,6 +8,7 @@ import 'firebase_options.dart';
 import 'repositorios/asistencia_repository_firebase.dart';
 import 'repositorios/auth_repository_firebase.dart';
 import 'repositorios/deporte_repository_firebase.dart';
+import 'repositorios/inscripcion_repository_firebase.dart';
 import 'repositorios/repositorios.dart';
 import 'repositorios/usuario_repository_firebase.dart';
 import 'viewmodels/auth_viewmodel.dart';
@@ -51,6 +52,9 @@ class MyApp extends StatelessWidget {
         Provider<AuthRepository>(create: (_) => AuthRepositoryFirebase()),
         Provider<UsuarioRepository>(create: (_) => UsuarioRepositoryFirebase()),
         Provider<DeporteRepository>(create: (_) => DeporteRepositoryFirebase()),
+        Provider<InscripcionRepository>(
+          create: (_) => InscripcionRepositoryFirebase(),
+        ),
         Provider<AsistenciaRepository>(
           create: (_) => AsistenciaRepositoryFirebase(),
         ),
