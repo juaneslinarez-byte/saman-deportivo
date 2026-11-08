@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/colores.dart';
 import '../../core/rutas.dart';
 import '../../core/solvencia.dart';
+import '../comun/panel_componentes.dart';
 import '../../repositorios/repositorios.dart';
 import '../../viewmodels/panel_admin_viewmodel.dart';
 
@@ -80,12 +81,6 @@ class _Pantalla extends StatelessWidget {
   }
 }
 
-String _porcentaje(double valor) => '${(valor * 100).round()} %';
-
-String _hora(DateTime fecha) =>
-    '${fecha.hour.toString().padLeft(2, '0')}:'
-    '${fecha.minute.toString().padLeft(2, '0')}';
-
 class _Contenido extends StatelessWidget {
   const _Contenido({required this.vm});
 
@@ -105,85 +100,64 @@ class _Contenido extends StatelessWidget {
           children: [
             if (actualizado != null)
               Text(
-                'En tiempo real · última actualización ${_hora(actualizado)}',
+                'En tiempo real · última actualización ${horaPanel(actualizado)}',
                 style: const TextStyle(
                   fontSize: 12,
                   color: ColoresSaman.textoSecundario,
                 ),
               ),
             const SizedBox(height: 12),
-            LayoutBuilder(
-              builder: (context, restricciones) {
-                const espacio = 12.0;
-                // Cinco en pantalla ancha, tres en tableta y dos en teléfono.
-                final columnas = restricciones.maxWidth >= 900
-                    ? 5
-                    : restricciones.maxWidth >= 560
-                    ? 3
-                    : restricciones.maxWidth >= 330
-                    ? 2
-                    : 1;
-                final ancho =
-                    (restricciones.maxWidth - espacio * (columnas - 1)) /
-                    columnas;
-                final tarjetas = [
-                  _Indicador(
-                    icono: Icons.school_outlined,
-                    titulo: 'Estudiantes',
-                    valor: '${vm.totalEstudiantes}',
-                    detalle:
-                        '${vm.estudiantesSolventes} solventes · '
-                        '${vm.estudiantesNoSolventes} sin solvencia',
-                    ruta: Rutas.adminUsuarios,
-                  ),
-                  _Indicador(
-                    icono: Icons.sports_outlined,
-                    titulo: 'Disciplinas',
-                    valor: '${vm.totalDisciplinas}',
-                    detalle:
-                        '${vm.disciplinasPublicadas} publicadas · '
-                        '${vm.totalEntrenadores} entrenadores',
-                    ruta: Rutas.adminDeportes,
-                  ),
-                  _Indicador(
-                    icono: Icons.how_to_reg_outlined,
-                    titulo: 'Inscripciones activas',
-                    valor: '${vm.inscripcionesActivas}',
-                    detalle:
-                        'Ocupación ${_porcentaje(vm.ocupacionGlobal)} de '
-                        '${vm.cupoTotal} cupos',
-                  ),
-                  _Indicador(
-                    icono: Icons.fact_check_outlined,
-                    titulo: 'Asistencia',
-                    valor: asistencia == null ? '—' : _porcentaje(asistencia),
-                    detalle: asistencia == null
-                        ? 'Aún no se ha tomado asistencia'
-                        : 'Promedio de ${vm.registrosAsistencia} registros',
-                  ),
-                  _Indicador(
-                    icono: Icons.request_quote_outlined,
-                    titulo: 'Pagos en revisión',
-                    valor: '${vm.pagosEnRevision}',
-                    detalle: vm.pagosEnRevision == 0
-                        ? 'Nada pendiente'
-                        : '${Solvencia.formatoMonto(vm.montoEnRevision)} '
-                              'por aprobar',
-                    ruta: Rutas.adminPagos,
-                    resaltado: vm.pagosEnRevision > 0,
-                  ),
-                ];
-                return Wrap(
-                  spacing: espacio,
-                  runSpacing: espacio,
-                  children: [
-                    for (final t in tarjetas) SizedBox(width: ancho, child: t),
-                  ],
-                );
-              },
+            RejillaIndicadores(
+              children: [
+                TarjetaIndicador(
+                  icono: Icons.school_outlined,
+                  titulo: 'Estudiantes',
+                  valor: '${vm.totalEstudiantes}',
+                  detalle:
+                      '${vm.estudiantesSolventes} solventes · '
+                      '${vm.estudiantesNoSolventes} sin solvencia',
+                  ruta: Rutas.adminUsuarios,
+                ),
+                TarjetaIndicador(
+                  icono: Icons.sports_outlined,
+                  titulo: 'Disciplinas',
+                  valor: '${vm.totalDisciplinas}',
+                  detalle:
+                      '${vm.disciplinasPublicadas} publicadas · '
+                      '${vm.totalEntrenadores} entrenadores',
+                  ruta: Rutas.adminDeportes,
+                ),
+                TarjetaIndicador(
+                  icono: Icons.how_to_reg_outlined,
+                  titulo: 'Inscripciones activas',
+                  valor: '${vm.inscripcionesActivas}',
+                  detalle:
+                      'Ocupación ${porcentajePanel(vm.ocupacionGlobal)} de '
+                      '${vm.cupoTotal} cupos',
+                ),
+                TarjetaIndicador(
+                  icono: Icons.fact_check_outlined,
+                  titulo: 'Asistencia',
+                  valor: asistencia == null ? '—' : porcentajePanel(asistencia),
+                  detalle: asistencia == null
+                      ? 'Aún no se ha tomado asistencia'
+                      : 'Promedio de ${vm.registrosAsistencia} registros',
+                ),
+                TarjetaIndicador(
+                  icono: Icons.request_quote_outlined,
+                  titulo: 'Pagos en revisión',
+                  valor: '${vm.pagosEnRevision}',
+                  detalle: vm.pagosEnRevision == 0
+                      ? 'Nada pendiente'
+                      : '${Solvencia.formatoMonto(vm.montoEnRevision)} '
+                            'por aprobar',
+                  ruta: Rutas.adminPagos,
+                  resaltado: vm.pagosEnRevision > 0,
+                ),
+              ],
             ),
             const SizedBox(height: 24),
-            _Seccion(
+            SeccionPanel(
               titulo: 'Requiere atención',
               child: vm.alertas.isEmpty
                   ? const Text(
@@ -194,26 +168,31 @@ class _Contenido extends StatelessWidget {
                   : Column(
                       children: [
                         for (final alerta in vm.alertas)
-                          _FilaAlerta(alerta: alerta),
+                          FilaAvisoPanel(
+                            texto: alerta.texto,
+                            ruta: alerta.ruta,
+                          ),
                       ],
                     ),
             ),
             const SizedBox(height: 16),
-            _Seccion(
+            SeccionPanel(
               titulo: 'Solvencia de los estudiantes',
               child: vm.totalEstudiantes == 0
-                  ? const _SinDatos('Todavía no hay estudiantes registrados.')
+                  ? const TextoSinDatos(
+                      'Todavía no hay estudiantes registrados.',
+                    )
                   : _BarraSolvencia(vm: vm),
             ),
             const SizedBox(height: 16),
-            _Seccion(
+            SeccionPanel(
               titulo: 'Ocupación por disciplina',
               child: vm.disciplinas.isEmpty
-                  ? const _SinDatos('Todavía no hay disciplinas creadas.')
+                  ? const TextoSinDatos('Todavía no hay disciplinas creadas.')
                   : Column(
                       children: [
                         for (final r in vm.disciplinas)
-                          _Barra(
+                          BarraPanel(
                             etiqueta: r.deporte.nombre,
                             detalle:
                                 '${r.deporte.inscritos} / '
@@ -228,20 +207,20 @@ class _Contenido extends StatelessWidget {
                     ),
             ),
             const SizedBox(height: 16),
-            _Seccion(
+            SeccionPanel(
               titulo: 'Asistencia por disciplina',
               child: vm.disciplinasConAsistencia.isEmpty
-                  ? const _SinDatos(
+                  ? const TextoSinDatos(
                       'Cuando los entrenadores tomen la asistencia, aquí verás '
                       'el porcentaje de cada disciplina.',
                     )
                   : Column(
                       children: [
                         for (final r in vm.disciplinasConAsistencia)
-                          _Barra(
+                          BarraPanel(
                             etiqueta: r.deporte.nombre,
                             detalle:
-                                '${_porcentaje(r.asistencia!)} · '
+                                '${porcentajePanel(r.asistencia!)} · '
                                 '${r.clases} '
                                 '${r.clases == 1 ? 'clase' : 'clases'}',
                             valor: r.asistencia!,
@@ -254,227 +233,6 @@ class _Contenido extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Indicador extends StatelessWidget {
-  const _Indicador({
-    required this.icono,
-    required this.titulo,
-    required this.valor,
-    required this.detalle,
-    this.ruta,
-    this.resaltado = false,
-  });
-
-  final IconData icono;
-  final String titulo;
-  final String valor;
-  final String detalle;
-  final String? ruta;
-  final bool resaltado;
-
-  @override
-  Widget build(BuildContext context) {
-    final ruta = this.ruta;
-    return Material(
-      color: ColoresSaman.blanco,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: ruta == null ? null : () => Navigator.pushNamed(context, ruta),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: resaltado ? ColoresSaman.naranja : ColoresSaman.gris,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(icono, size: 20, color: ColoresSaman.naranja),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      titulo,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: ColoresSaman.textoSecundario,
-                      ),
-                    ),
-                  ),
-                  if (ruta != null)
-                    const Icon(
-                      Icons.chevron_right,
-                      size: 18,
-                      color: ColoresSaman.textoTenue,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                valor,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: ColoresSaman.azulOscuro,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                detalle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: ColoresSaman.textoSecundario,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Seccion extends StatelessWidget {
-  const _Seccion({required this.titulo, required this.child});
-
-  final String titulo;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: ColoresSaman.blanco,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ColoresSaman.gris),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            titulo,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: ColoresSaman.azulOscuro,
-            ),
-          ),
-          const SizedBox(height: 14),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-class _FilaAlerta extends StatelessWidget {
-  const _FilaAlerta({required this.alerta});
-
-  final AlertaPanel alerta;
-
-  @override
-  Widget build(BuildContext context) {
-    final ruta = alerta.ruta;
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: ruta == null ? null : () => Navigator.pushNamed(context, ruta),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.warning_amber_rounded,
-              size: 20,
-              color: ColoresSaman.naranja,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                alerta.texto,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: ColoresSaman.azulOscuro,
-                ),
-              ),
-            ),
-            if (ruta != null)
-              const Icon(
-                Icons.chevron_right,
-                size: 18,
-                color: ColoresSaman.textoTenue,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Fila con una barra horizontal de 0 a 100 %.
-class _Barra extends StatelessWidget {
-  const _Barra({
-    required this.etiqueta,
-    required this.detalle,
-    required this.valor,
-    required this.color,
-  });
-
-  final String etiqueta;
-  final String detalle;
-  final double valor;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  etiqueta,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: ColoresSaman.azulOscuro,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                detalle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: ColoresSaman.textoSecundario,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: valor.clamp(0, 1).toDouble(),
-              minHeight: 10,
-              backgroundColor: ColoresSaman.gris,
-              color: color,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -506,62 +264,19 @@ class _BarraSolvencia extends StatelessWidget {
           spacing: 20,
           runSpacing: 6,
           children: [
-            _Leyenda(
+            LeyendaPanel(
               color: ColoresSaman.verde,
               texto:
                   'Solventes: $solventes '
-                  '(${_porcentaje(solventes / total)})',
+                  '(${porcentajePanel(solventes / total)})',
             ),
-            _Leyenda(
+            LeyendaPanel(
               color: ColoresSaman.rojo.withValues(alpha: 0.35),
               texto: 'Sin solvencia: ${vm.estudiantesNoSolventes}',
             ),
           ],
         ),
       ],
-    );
-  }
-}
-
-class _Leyenda extends StatelessWidget {
-  const _Leyenda({required this.color, required this.texto});
-
-  final Color color;
-  final String texto;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          texto,
-          style: const TextStyle(fontSize: 12, color: ColoresSaman.azulOscuro),
-        ),
-      ],
-    );
-  }
-}
-
-class _SinDatos extends StatelessWidget {
-  const _SinDatos(this.texto);
-
-  final String texto;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      texto,
-      style: const TextStyle(fontSize: 13, color: ColoresSaman.textoSecundario),
     );
   }
 }

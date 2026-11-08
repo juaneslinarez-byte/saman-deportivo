@@ -25,6 +25,7 @@ import 'vistas/bienvenida/bienvenida_view.dart';
 import 'vistas/entrenador/disciplinas_entrenador_view.dart';
 import 'vistas/entrenador/historial_asistencia_view.dart';
 import 'vistas/entrenador/nomina_view.dart';
+import 'vistas/entrenador/panel_entrenador_view.dart';
 import 'vistas/entrenador/tomar_asistencia_view.dart';
 import 'vistas/estudiante/catalogo_view.dart';
 import 'vistas/estudiante/confirmar_inscripcion_view.dart';
@@ -112,6 +113,7 @@ class MyApp extends StatelessWidget {
           Rutas.disciplinasEntrenador: (context) =>
               const DisciplinasEntrenadorView(),
           Rutas.nominaEntrenador: (context) => const NominaView(),
+          Rutas.panelEntrenador: (context) => const PanelEntrenadorView(),
           Rutas.asistenciaEntrenador: (context) => const TomarAsistenciaView(),
           Rutas.adminDeportes: (context) => const AdminDeportesView(),
           Rutas.adminUsuarios: (context) => AdminUsuariosView(
