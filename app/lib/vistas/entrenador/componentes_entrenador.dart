@@ -10,10 +10,18 @@ import '../../core/colores.dart';
 /// Fondo y barra superior; el contenido va arriba, centrado y con un ancho
 /// máximo para que se lea bien en el computador y en el teléfono.
 class MarcoEntrenador extends StatelessWidget {
-  const MarcoEntrenador({super.key, required this.titulo, required this.child});
+  const MarcoEntrenador({
+    super.key,
+    required this.titulo,
+    required this.child,
+    this.abajo,
+  });
 
   final String titulo;
   final Widget child;
+
+  /// Lo que va debajo del título, por ejemplo las pestañas del historial.
+  final PreferredSizeWidget? abajo;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +40,7 @@ class MarcoEntrenador extends StatelessWidget {
         backgroundColor: ColoresSaman.blanco,
         foregroundColor: ColoresSaman.azulOscuro,
         elevation: 0,
+        bottom: abajo,
       ),
       body: Align(
         alignment: Alignment.topCenter,
