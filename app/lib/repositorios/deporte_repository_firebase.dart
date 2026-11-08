@@ -34,17 +34,18 @@ class DeporteRepositoryFirebase implements DeporteRepository {
     return Deporte.fromMap(doc.id, doc.data() as Map<String, dynamic>);
   }
 
+  /// Una disciplina puede tener varios entrenadores, y las creadas antes
+  /// solo guardan `idEntrenador`. Por eso se filtra en la app con
+  /// [Deporte.tieneAlEntrenador], que entiende los dos formatos; el
+  /// catálogo es pequeño y el entrenador ya puede leerlo completo.
   @override
   Stream<List<Deporte>> observarPorEntrenador(String idEntrenador) {
-    return _db
-        .collection('deportes')
-        .where('idEntrenador', isEqualTo: idEntrenador)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => Deporte.fromMap(doc.id, doc.data()))
-              .toList();
-        });
+    return _db.collection('deportes').snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => Deporte.fromMap(doc.id, doc.data()))
+          .where((deporte) => deporte.tieneAlEntrenador(idEntrenador))
+          .toList();
+    });
   }
 
   @override

@@ -7,10 +7,11 @@ import '../repositorios/deporte_repository.dart';
 import '../repositorios/usuario_repository.dart';
 
 /// Gestión de deportes del administrador: alta, edición, publicación,
-/// eliminación y entrenador asignado (RF-ADM-01, RF-ADM-02, RF-ADM-04).
+/// eliminación y entrenadores asignados (RF-ADM-01, RF-ADM-02, RF-ADM-04).
 class AdminDeportesViewModel extends ChangeNotifier {
   AdminDeportesViewModel(this._deporteRepository, [this._usuarioRepository]) {
     _escucharDeportes();
+    _cargarEntrenadores();
   }
 
   final DeporteRepository _deporteRepository;
@@ -22,6 +23,7 @@ class AdminDeportesViewModel extends ChangeNotifier {
   bool _cargando = false;
   String? _error;
   StreamSubscription<List<Deporte>>? _deportesSub;
+  Map<String, Persona> _entrenadores = {};
 
   List<Deporte> get deportes => _deportesFiltrados;
   bool get cargando => _cargando;
@@ -112,7 +114,6 @@ class AdminDeportesViewModel extends ChangeNotifier {
             lugar: lugar.trim(),
             cupoMaximo: cupoMaximo,
             cuposDisponibles: cupoMaximo,
-            idEntrenador: null,
             visible: false,
           ),
         );
@@ -149,7 +150,7 @@ class AdminDeportesViewModel extends ChangeNotifier {
   Future<bool> alternarVisibilidad(Deporte deporte) async {
     _error = null;
     if (!deporte.visible) {
-      if (deporte.idEntrenador == null || deporte.idEntrenador!.isEmpty) {
+      if (!deporte.tieneEntrenador) {
         _error = 'Asigna un entrenador antes de publicar el deporte.';
         notifyListeners();
         return false;
@@ -175,12 +176,20 @@ class AdminDeportesViewModel extends ChangeNotifier {
     );
   }
 
-  /// Entrenadores registrados, para asignarlos a un deporte.
+  /// Entrenadores registrados, para asignarlos a un deporte. Se guardan
+  /// para mostrar en cada tarjeta quién da la disciplina.
   Future<List<Persona>> obtenerEntrenadores() async {
     final repositorio = _usuarioRepository;
     if (repositorio == null) return [];
     try {
-      return await repositorio.listar(actor: Actor.entrenador);
+      final lista = await repositorio.listar(actor: Actor.entrenador);
+      lista.sort(
+        (a, b) => '${a.nombre} ${a.apellido}'.toLowerCase().compareTo(
+          '${b.nombre} ${b.apellido}'.toLowerCase(),
+        ),
+      );
+      _entrenadores = {for (final e in lista) e.id: e};
+      return lista;
     } catch (_) {
       _error = 'No se pudieron cargar los entrenadores.';
       notifyListeners();
@@ -188,17 +197,40 @@ class AdminDeportesViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> asignarEntrenador(Deporte deporte, String idEntrenador) =>
-      _actualizar(
-        deporte.copyWith(idEntrenador: idEntrenador),
-        'No se pudo asignar el entrenador. Inténtalo de nuevo.',
-      );
+  Future<void> _cargarEntrenadores() async {
+    if (_usuarioRepository == null) return;
+    await obtenerEntrenadores();
+    notifyListeners();
+  }
 
-  /// Sin entrenador, el deporte deja de mostrarse en el catálogo.
-  Future<bool> quitarEntrenador(Deporte deporte) => _actualizar(
-    deporte.copyWith(quitarEntrenador: true, visible: false),
-    'No se pudo quitar el entrenador. Inténtalo de nuevo.',
-  );
+  /// Nombres de los entrenadores de la disciplina, en el orden asignado.
+  /// Si un entrenador ya no aparece entre los registrados (por ejemplo,
+  /// volvió a ser estudiante), se indica en lugar de su nombre.
+  List<String> nombresEntrenadores(Deporte deporte) => [
+    for (final id in deporte.idsEntrenadores)
+      _entrenadores[id] == null
+          ? 'Entrenador no disponible'
+          : '${_entrenadores[id]!.nombre} ${_entrenadores[id]!.apellido}',
+  ];
+
+  /// Deja la disciplina con los entrenadores [idsEntrenadores]: sirve para
+  /// agregar, cambiar o quitar instructores. Sin ninguno, la disciplina se
+  /// oculta del catálogo, porque nadie daría las clases.
+  Future<bool> guardarEntrenadores(
+    Deporte deporte,
+    List<String> idsEntrenadores,
+  ) {
+    if (idsEntrenadores.isEmpty) {
+      return _actualizar(
+        deporte.copyWith(quitarEntrenador: true, visible: false),
+        'No se pudieron quitar los entrenadores. Inténtalo de nuevo.',
+      );
+    }
+    return _actualizar(
+      deporte.copyWith(idsEntrenadores: idsEntrenadores),
+      'No se pudieron guardar los entrenadores. Inténtalo de nuevo.',
+    );
+  }
 
   Future<bool> ocultarDeporte(Deporte deporte) => _actualizar(
     deporte.copyWith(visible: false),

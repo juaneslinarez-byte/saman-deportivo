@@ -176,8 +176,8 @@ class _TarjetaDeporte extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<AdminDeportesViewModel>();
-    final tieneEntrenador =
-        deporte.idEntrenador != null && deporte.idEntrenador!.isNotEmpty;
+    final tieneEntrenador = deporte.tieneEntrenador;
+    final nombres = viewModel.nombresEntrenadores(deporte);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -294,28 +294,40 @@ class _TarjetaDeporte extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    tieneEntrenador ? Icons.how_to_reg : Icons.person_add,
-                    size: 18,
-                    color: tieneEntrenador
-                        ? ColoresSaman.verde
-                        : ColoresSaman.textoTenue,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    tieneEntrenador ? 'Entrenador asignado' : 'Sin entrenador',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      tieneEntrenador ? Icons.how_to_reg : Icons.person_add,
+                      size: 18,
                       color: tieneEntrenador
                           ? ColoresSaman.verde
                           : ColoresSaman.textoTenue,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        !tieneEntrenador
+                            ? 'Sin entrenador'
+                            : nombres.length == 1
+                            ? nombres.first
+                            : '${nombres.length} entrenadores: '
+                                  '${nombres.join(', ')}',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: tieneEntrenador
+                              ? ColoresSaman.verde
+                              : ColoresSaman.textoTenue,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 'Inscritos: ${deporte.inscritos} / ${deporte.cupoMaximo}',
                 style: const TextStyle(
@@ -364,8 +376,8 @@ class _TarjetaDeporte extends StatelessWidget {
                   Icons.person_add_outlined,
                   color: ColoresSaman.azulOscuro,
                 ),
-                tooltip: 'Asignar Entrenador',
-                onPressed: () => _asignarEntrenador(
+                tooltip: 'Entrenadores',
+                onPressed: () => _gestionarEntrenadores(
                   context,
                   deporte,
                   context.read<AdminDeportesViewModel>(),
@@ -454,7 +466,9 @@ void _eliminarDeporte(
   }
 }
 
-void _asignarEntrenador(
+/// Diálogo para elegir los entrenadores de la disciplina: se pueden marcar
+/// varios, agregar o quitar. Si se desmarcan todos, la disciplina se oculta.
+void _gestionarEntrenadores(
   BuildContext context,
   Deporte deporte,
   AdminDeportesViewModel vm,
@@ -462,66 +476,107 @@ void _asignarEntrenador(
   final entrenadores = await vm.obtenerEntrenadores();
   if (!context.mounted) return;
 
-  showDialog(
+  final elegidos = <String>[
+    for (final id in deporte.idsEntrenadores)
+      if (entrenadores.any((e) => e.id == id)) id,
+  ];
+  final iniciales = List<String>.of(elegidos);
+
+  final guardar = await showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text('Entrenador: ${deporte.nombre}'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: entrenadores.isEmpty
-            ? const Text('No hay entrenadores registrados.')
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: entrenadores.length,
-                itemBuilder: (context, index) {
-                  final e = entrenadores[index];
-                  final seleccionado = deporte.idEntrenador == e.id;
-                  return ListTile(
-                    title: Text('${e.nombre} ${e.apellido}'),
-                    subtitle: Text(e.correo),
-                    trailing: seleccionado
-                        ? const Icon(Icons.check, color: ColoresSaman.verde)
-                        : null,
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      final exito = await vm.asignarEntrenador(deporte, e.id);
-                      if (context.mounted) {
-                        _avisar(
-                          context,
-                          exito,
-                          'Entrenador asignado a ${deporte.nombre}.',
-                          vm,
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
-      ),
-      actions: [
-        if (deporte.idEntrenador != null)
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: ColoresSaman.rojo),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final exito = await vm.quitarEntrenador(deporte);
-              if (context.mounted) {
-                _avisar(
-                  context,
-                  exito,
-                  'Entrenador quitado. El deporte quedó oculto.',
-                  vm,
-                );
-              }
-            },
-            child: const Text('Quitar entrenador'),
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setEstado) {
+        final hayCambios =
+            elegidos.length != iniciales.length ||
+            elegidos.any((id) => !iniciales.contains(id));
+        return AlertDialog(
+          title: Text('Entrenadores de ${deporte.nombre}'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: entrenadores.isEmpty
+                ? const Text(
+                    'No hay entrenadores registrados. Conviértelos desde '
+                    'Usuarios.',
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Marca quiénes dan esta disciplina. El primero '
+                        'marcado queda como entrenador principal.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: ColoresSaman.textoSecundario,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Flexible(
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: [
+                            for (final e in entrenadores)
+                              CheckboxListTile(
+                                value: elegidos.contains(e.id),
+                                activeColor: ColoresSaman.naranja,
+                                title: Text('${e.nombre} ${e.apellido}'),
+                                subtitle: Text(
+                                  elegidos.isNotEmpty && elegidos.first == e.id
+                                      ? '${e.correo} · Principal'
+                                      : e.correo,
+                                ),
+                                onChanged: (marcado) => setEstado(() {
+                                  if (marcado ?? false) {
+                                    elegidos.add(e.id);
+                                  } else {
+                                    elegidos.remove(e.id);
+                                  }
+                                }),
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (elegidos.isEmpty && deporte.tieneEntrenador)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Sin entrenadores, la disciplina se ocultará '
+                            'del catálogo.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: ColoresSaman.rojo,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
           ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx),
-          child: const Text('Cerrar'),
-        ),
-      ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar'),
+            ),
+            if (entrenadores.isNotEmpty)
+              ElevatedButton(
+                onPressed: hayCambios ? () => Navigator.pop(ctx, true) : null,
+                child: const Text('Guardar'),
+              ),
+          ],
+        );
+      },
     ),
+  );
+
+  if (guardar != true || !context.mounted) return;
+  final exito = await vm.guardarEntrenadores(deporte, elegidos);
+  if (!context.mounted) return;
+  _avisar(
+    context,
+    exito,
+    elegidos.isEmpty
+        ? 'Entrenadores quitados. La disciplina quedó oculta.'
+        : 'Entrenadores de ${deporte.nombre} actualizados.',
+    vm,
   );
 }
 
