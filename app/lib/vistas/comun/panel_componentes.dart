@@ -6,6 +6,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../core/colores.dart';
+import 'disenio.dart';
 
 String porcentajePanel(double valor) => '${(valor * 100).round()} %';
 
@@ -40,7 +41,11 @@ class RejillaIndicadores extends StatelessWidget {
           spacing: espacio,
           runSpacing: espacio,
           children: [
-            for (final hijo in children) SizedBox(width: ancho, child: hijo),
+            for (final (i, hijo) in children.indexed)
+              SizedBox(
+                width: ancho,
+                child: Aparecer(retraso: Aparecer.escalonado(i), child: hijo),
+              ),
           ],
         );
       },
@@ -57,6 +62,7 @@ class TarjetaIndicador extends StatelessWidget {
     required this.detalle,
     this.ruta,
     this.resaltado = false,
+    this.color,
   });
 
   final IconData icono;
@@ -66,68 +72,62 @@ class TarjetaIndicador extends StatelessWidget {
   final String? ruta;
   final bool resaltado;
 
+  /// Color del ícono; si no se indica, sale del título para que cada
+  /// indicador tenga siempre el mismo.
+  final Color? color;
+
   @override
   Widget build(BuildContext context) {
     final ruta = this.ruta;
-    return Material(
-      color: ColoresSaman.blanco,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: ruta == null ? null : () => Navigator.pushNamed(context, ruta),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: resaltado ? ColoresSaman.naranja : ColoresSaman.gris,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final acento = color ?? AvatarIniciales.colorDe(titulo);
+    return TarjetaInteractiva(
+      relleno: const EdgeInsets.all(16),
+      radio: 18,
+      colorBorde: resaltado ? ColoresSaman.naranja : null,
+      alTocar: ruta == null ? null : () => Navigator.pushNamed(context, ruta),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(icono, size: 20, color: ColoresSaman.naranja),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      titulo,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: ColoresSaman.textoSecundario,
-                      ),
-                    ),
+              IconoAcento(icono: icono, color: acento, tamano: 36),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  titulo,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: ColoresSaman.textoSecundario,
                   ),
-                  if (ruta != null)
-                    const Icon(
-                      Icons.chevron_right,
-                      size: 18,
-                      color: ColoresSaman.textoTenue,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                valor,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: ColoresSaman.azulOscuro,
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                detalle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: ColoresSaman.textoSecundario,
+              if (ruta != null)
+                const Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: ColoresSaman.textoTenue,
                 ),
-              ),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+          Text(
+            valor,
+            style: const TextStyle(
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
+              color: ColoresSaman.azulOscuro,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            detalle,
+            style: const TextStyle(
+              fontSize: 12,
+              color: ColoresSaman.textoSecundario,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -141,27 +141,41 @@ class SeccionPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: ColoresSaman.blanco,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ColoresSaman.gris),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            titulo,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: ColoresSaman.azulOscuro,
+    return Aparecer(
+      retraso: const Duration(milliseconds: 150),
+      child: TarjetaInteractiva(
+        relleno: const EdgeInsets.all(20),
+        radio: 20,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    gradient: ColoresSaman.degradadoNaranja,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    titulo,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: ColoresSaman.azulOscuro,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 14),
-          child,
-        ],
+            const SizedBox(height: 16),
+            child,
+          ],
+        ),
       ),
     );
   }
@@ -271,11 +285,17 @@ class BarraPanel extends StatelessWidget {
           const SizedBox(height: 6),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: valor.clamp(0, 1).toDouble(),
-              minHeight: 10,
-              backgroundColor: ColoresSaman.gris,
-              color: color,
+            // La barra se llena con una animación al aparecer.
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: valor.clamp(0, 1).toDouble()),
+              duration: const Duration(milliseconds: 900),
+              curve: Curves.easeOutCubic,
+              builder: (context, avance, _) => LinearProgressIndicator(
+                value: avance,
+                minHeight: 10,
+                backgroundColor: color.withValues(alpha: 0.12),
+                color: color,
+              ),
             ),
           ),
         ],

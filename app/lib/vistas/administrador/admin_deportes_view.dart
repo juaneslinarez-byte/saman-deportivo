@@ -8,6 +8,7 @@ import '../../repositorios/deporte_repository.dart';
 import '../../repositorios/usuario_repository.dart';
 import '../../viewmodels/admin_deportes_viewmodel.dart';
 import '../comun/campos_formulario.dart';
+import '../comun/disenio.dart';
 import 'deporte_form_view.dart';
 import 'inscritos_admin_view.dart';
 import 'sesiones_cupos_view.dart';
@@ -156,9 +157,12 @@ class _AdminDeportesCuerpo extends StatelessWidget {
       separatorBuilder: (context, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final deporte = deportes[index];
-        return _TarjetaDeporte(
-          deporte: deporte,
-          onEditar: () => _abrirFormulario(context, deporte),
+        return Aparecer(
+          retraso: Aparecer.escalonado(index, pasoMs: 50),
+          child: _TarjetaDeporte(
+            deporte: deporte,
+            onEditar: () => _abrirFormulario(context, deporte),
+          ),
         );
       },
     );
@@ -177,20 +181,8 @@ class _TarjetaDeporte extends StatelessWidget {
     final tieneEntrenador = deporte.tieneEntrenador;
     final nombres = viewModel.nombresEntrenadores(deporte);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: ColoresSaman.blanco,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ColoresSaman.gris),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return TarjetaInteractiva(
+      relleno: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
