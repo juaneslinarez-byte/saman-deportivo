@@ -33,6 +33,7 @@ import 'vistas/estudiante/detalle_disciplina_view.dart';
 import 'vistas/estudiante/inscripcion_confirmada_view.dart';
 import 'vistas/estudiante/mi_asistencia_view.dart';
 import 'vistas/estudiante/mis_disciplinas_view.dart';
+import 'vistas/estudiante/panel_estudiante_view.dart';
 import 'vistas/estudiante/solvencia_view.dart';
 import 'vistas/inicio/en_construccion_view.dart';
 import 'vistas/inicio/inicio_view.dart';
@@ -110,6 +111,7 @@ class MyApp extends StatelessWidget {
           Rutas.misDisciplinas: (context) => const MisDisciplinasView(),
           Rutas.miAsistencia: (context) => const MiAsistenciaView(),
           Rutas.solvencia: (context) => const SolvenciaView(),
+          Rutas.panelEstudiante: (context) => const PanelEstudianteView(),
           Rutas.disciplinasEntrenador: (context) =>
               const DisciplinasEntrenadorView(),
           Rutas.nominaEntrenador: (context) => const NominaView(),

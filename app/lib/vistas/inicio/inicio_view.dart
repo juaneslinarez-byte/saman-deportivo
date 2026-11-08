@@ -40,6 +40,12 @@ class InicioView extends StatelessWidget {
       switch (persona) {
         Estudiante() => const [
           SeccionInicio(
+            titulo: 'Mi resumen',
+            descripcion: 'Próxima clase, asistencia y pendientes',
+            icono: Icons.insights_outlined,
+            ruta: Rutas.panelEstudiante,
+          ),
+          SeccionInicio(
             titulo: 'Catálogo de disciplinas',
             descripcion: 'Busca por cupos, días y horarios',
             icono: Icons.sports_soccer_outlined,
