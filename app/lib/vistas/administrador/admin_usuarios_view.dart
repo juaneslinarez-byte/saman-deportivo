@@ -108,13 +108,13 @@ class _AdminUsuariosBody extends StatelessWidget {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: const BorderSide(
-                            color: Color(0xFFE6E9F2),
+                            color: ColoresSaman.borde,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: const BorderSide(
-                            color: Color(0xFFE6E9F2),
+                            color: ColoresSaman.borde,
                           ),
                         ),
                       ),

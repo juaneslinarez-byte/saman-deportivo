@@ -256,8 +256,9 @@ class _Contenido extends StatelessWidget {
       child: Column(
         children: [
           PortadaDegradado(
+            imagen: 'assets/imagenes/portada_pista.jpg',
             anchoMaximo: 900,
-            espacioInferior: 80,
+            espacioInferior: 90,
             encima: Row(
               children: [
                 AvatarIniciales(nombre: persona.nombreCompleto, tamano: 48),

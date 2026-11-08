@@ -137,7 +137,7 @@ class _TarjetaInteractivaState extends State<TarjetaInteractiva> {
                     widget.colorBorde ??
                     (elevada
                         ? ColoresSaman.indigo.withValues(alpha: 0.25)
-                        : const Color(0xFFE6E9F2)),
+                        : ColoresSaman.borde),
               ),
               boxShadow: [
                 BoxShadow(
@@ -301,8 +301,12 @@ class IconoAcento extends StatelessWidget {
   }
 }
 
-/// Portada en degradado azul noche, con círculos decorativos, que continúa
-/// la barra superior. Lleva un título, un subtítulo y lo que se ponga debajo.
+/// Portada en verde Samán que continúa la barra superior. Lleva un título,
+/// un subtítulo y lo que se ponga debajo.
+///
+/// Con [imagen], la foto ocupa la portada y se funde poco a poco con el
+/// fondo crema de la pantalla, sin un corte brusco; sin ella, es un
+/// degradado verde con círculos de luz.
 class PortadaDegradado extends StatelessWidget {
   const PortadaDegradado({
     super.key,
@@ -312,7 +316,11 @@ class PortadaDegradado extends StatelessWidget {
     this.debajo,
     this.anchoMaximo = 1000,
     this.espacioInferior = 28,
+    this.imagen,
   });
+
+  /// Foto de fondo (ruta de un asset).
+  final String? imagen;
 
   final String titulo;
   final String? subtitulo;
@@ -329,6 +337,71 @@ class PortadaDegradado extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final imagen = this.imagen;
+    final contenido = Center(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: anchoMaximo),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 28, 20, espacioInferior),
+          child: Aparecer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (encima != null) ...[encima!, const SizedBox(height: 12)],
+                Text(
+                  titulo,
+                  style: const TextStyle(
+                    color: ColoresSaman.blanco,
+                    fontSize: 30,
+                    fontWeight: FontWeight.w800,
+                    height: 1.15,
+                  ),
+                ),
+                if (subtitulo != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitulo!,
+                    style: TextStyle(
+                      color: ColoresSaman.blanco.withValues(alpha: 0.85),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+                if (debajo != null) ...[const SizedBox(height: 18), debajo!],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (imagen != null) {
+      return Stack(
+        children: [
+          Positioned.fill(child: Image.asset(imagen, fit: BoxFit.cover)),
+          // Verde sobre la foto para que el texto se lea, y al final el
+          // color del fondo, para que la portada se funda con la pantalla.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0, 0.55, 1],
+                  colors: [
+                    ColoresSaman.azulNoche.withValues(alpha: 0.72),
+                    ColoresSaman.azulNoche.withValues(alpha: 0.82),
+                    ColoresSaman.fondo,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          contenido,
+        ],
+      );
+    }
+
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -342,60 +415,19 @@ class PortadaDegradado extends StatelessWidget {
           Positioned(
             right: -60,
             top: -80,
-            child: _Circulo(220, ColoresSaman.naranja.withValues(alpha: 0.18)),
+            child: _Circulo(220, ColoresSaman.naranja.withValues(alpha: 0.22)),
           ),
           Positioned(
             right: 140,
             bottom: -90,
-            child: _Circulo(180, ColoresSaman.indigo.withValues(alpha: 0.25)),
+            child: _Circulo(180, ColoresSaman.menta.withValues(alpha: 0.18)),
           ),
           Positioned(
             left: -40,
             bottom: -60,
-            child: _Circulo(140, ColoresSaman.cielo.withValues(alpha: 0.12)),
+            child: _Circulo(140, ColoresSaman.ambar.withValues(alpha: 0.12)),
           ),
-          Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: anchoMaximo),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 24, 20, espacioInferior),
-                child: Aparecer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (encima != null) ...[
-                        encima!,
-                        const SizedBox(height: 12),
-                      ],
-                      Text(
-                        titulo,
-                        style: const TextStyle(
-                          color: ColoresSaman.blanco,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          height: 1.15,
-                        ),
-                      ),
-                      if (subtitulo != null) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          subtitulo!,
-                          style: TextStyle(
-                            color: ColoresSaman.blanco.withValues(alpha: 0.75),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                      if (debajo != null) ...[
-                        const SizedBox(height: 18),
-                        debajo!,
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          contenido,
         ],
       ),
     );
