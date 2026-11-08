@@ -29,6 +29,9 @@ abstract final class Rutas {
   static const String inscripcionConfirmada =
       '/estudiante/inscripcion/confirmada';
   static const String miAsistencia = '/estudiante/asistencia';
+
+  /// Estado de la solvencia y pago de la cuota del trimestre.
+  static const String solvencia = '/estudiante/solvencia';
   static const String disciplinasEntrenador = '/entrenador';
 
   /// Nómina, asistencia e historial de una disciplina del entrenador;
@@ -39,6 +42,9 @@ abstract final class Rutas {
 
   static const String adminDeportes = '/admin/deportes';
   static const String adminUsuarios = '/admin/usuarios';
+
+  /// Pagos de solvencia que esperan aprobación.
+  static const String adminPagos = '/admin/pagos';
 
   /// Pantalla que se muestra al abrir la aplicación.
   static const String inicial = bienvenida;

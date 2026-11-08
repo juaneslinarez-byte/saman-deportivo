@@ -193,6 +193,19 @@ class _Resumen extends StatelessWidget {
         if (bloqueo != null) ...[
           const SizedBox(height: 14),
           _Aviso(mensaje: bloqueo, esError: false),
+          // Sin solvencia, el camino es pagar la cuota.
+          if (perfil case Estudiante(solvente: false))
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(
+                  foregroundColor: ColoresSaman.naranja,
+                ),
+                onPressed: () => Navigator.pushNamed(context, Rutas.solvencia),
+                icon: const Icon(Icons.payments_outlined),
+                label: const Text('Pagar mi solvencia'),
+              ),
+            ),
         ],
         if (error != null) ...[
           const SizedBox(height: 14),
