@@ -67,6 +67,16 @@ service cloud.firestore {
       return getAfter(/databases/$(database)/documents/deportes/$(idDeporte)).data;
     }
 
+    // ¿El usuario con sesión es uno de los entrenadores del deporte? Una
+    // disciplina puede tener varios (idsEntrenadores); las creadas antes
+    // solo guardan idEntrenador.
+    function esEntrenadorDe(deporte) {
+      return esEntrenador() && (
+        request.auth.uid in deporte.get('idsEntrenadores', [])
+        || deporte.get('idEntrenador', '') == request.auth.uid
+      );
+    }
+
     // Ruta de la inscripción de un estudiante en un deporte. Su id es
     // siempre idEstudiante_idDeporte (Inscripcion.idPara en el código).
     function rutaInscripcion(idEstudiante, idDeporte) {
@@ -203,16 +213,14 @@ service cloud.firestore {
       allow read: if esAdministrador() || esEntrenador()
         || (conSesion() && resource.data.idEstudiante == request.auth.uid);
 
-      // Solo el entrenador asignado al deporte registra o corrige la
+      // Solo un entrenador asignado al deporte registra o corrige la
       // asistencia (RF-ENT-03), y no puede pasarla a otro deporte.
       allow create: if esAdministrador() || (
-        esEntrenador()
-        && deporteAntes(request.resource.data.idDeporte).idEntrenador == request.auth.uid
+        esEntrenadorDe(deporteAntes(request.resource.data.idDeporte))
         && request.resource.data.presente is bool
       );
       allow update: if esAdministrador() || (
-        esEntrenador()
-        && deporteAntes(resource.data.idDeporte).idEntrenador == request.auth.uid
+        esEntrenadorDe(deporteAntes(resource.data.idDeporte))
         && request.resource.data.idDeporte == resource.data.idDeporte
         && request.resource.data.presente is bool
       );
