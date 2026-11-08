@@ -7,10 +7,12 @@ import 'core/tema.dart';
 import 'firebase_options.dart';
 import 'repositorios/asistencia_repository_firebase.dart';
 import 'repositorios/auth_repository_firebase.dart';
+import 'repositorios/deporte_repository_firebase.dart';
 import 'repositorios/repositorios.dart';
 import 'repositorios/usuario_repository_firebase.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/perfil_viewmodel.dart';
+import 'vistas/administrador/admin_deportes_view.dart';
 import 'vistas/auth/login_view.dart';
 import 'vistas/auth/recuperar_password_vista.dart';
 import 'vistas/auth/registro_view.dart';
@@ -48,6 +50,7 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider<AuthRepository>(create: (_) => AuthRepositoryFirebase()),
         Provider<UsuarioRepository>(create: (_) => UsuarioRepositoryFirebase()),
+        Provider<DeporteRepository>(create: (_) => DeporteRepositoryFirebase()),
         Provider<AsistenciaRepository>(
           create: (_) => AsistenciaRepositoryFirebase(),
         ),
@@ -98,6 +101,7 @@ class MyApp extends StatelessWidget {
               const DisciplinasEntrenadorView(),
           Rutas.nominaEntrenador: (context) => const NominaView(),
           Rutas.asistenciaEntrenador: (context) => const TomarAsistenciaView(),
+          Rutas.adminDeportes: (context) => const AdminDeportesView(),
         },
         // Las secciones cuyo módulo todavía no registró su pantalla.
         onUnknownRoute: EnConstruccionView.ruta,
