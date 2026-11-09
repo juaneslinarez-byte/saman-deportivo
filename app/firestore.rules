@@ -5,21 +5,6 @@ rules_version = '2';
 // Se publican con: firebase deploy --only firestore:rules
 service cloud.firestore {
   match /databases/{database}/documents {
-match /resenas/{resenaId} {
-  allow read: if request.auth != null;
-  allow create: if request.auth != null
-    && request.resource.data.idEstudiante == request.auth.uid
-    && request.resource.data.calificacion >= 1
-    && request.resource.data.calificacion <= 5
-    && exists(/databases/$(database)/documents/inscripciones/$(request.auth.uid)_$(request.resource.data.idDeporte));
-  allow update: if request.auth != null
-    && resource.data.idEstudiante == request.auth.uid
-    && request.resource.data.idEstudiante == request.auth.uid
-    && request.resource.data.calificacion >= 1
-    && request.resource.data.calificacion <= 5;
-  allow delete: if request.auth != null
-    && resource.data.idEstudiante == request.auth.uid;
-}
     // ---------------------------------------------------------------
     // Funciones de apoyo
     // ---------------------------------------------------------------
@@ -274,6 +259,33 @@ match /resenas/{resenaId} {
 
       // Los pagos no se borran.
       allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------
+    // Reseñas: resenas/{idEstudiante_idDeporte}
+    // ---------------------------------------------------------------
+    match /resenas/{idResena} {
+      // Cualquier usuario con sesión ve las reseñas de una disciplina.
+      allow read: if conSesion();
+
+      // Solo reseña quien se inscribió alguna vez en la disciplina: el id
+      // de la reseña es el mismo de su inscripción, así que hay una sola
+      // por estudiante y disciplina. El nombre debe ser el de su perfil.
+      allow create, update: if conSesion()
+        && idResena == request.auth.uid + '_' + request.resource.data.idDeporte
+        && request.resource.data.idEstudiante == request.auth.uid
+        && exists(/databases/$(database)/documents/inscripciones/$(idResena))
+        && request.resource.data.nombreEstudiante == miPerfil().nombre + ' ' + miPerfil().apellido
+        && request.resource.data.calificacion is int
+        && request.resource.data.calificacion >= 1
+        && request.resource.data.calificacion <= 5
+        && request.resource.data.comentario is string
+        && request.resource.data.comentario.size() >= 10
+        && request.resource.data.comentario.size() <= 300;
+
+      // La borra su autor o el administrador (moderación).
+      allow delete: if esAdministrador()
+        || (conSesion() && resource.data.idEstudiante == request.auth.uid);
     }
 
     // Cualquier otra colección queda cerrada.

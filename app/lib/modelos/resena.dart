@@ -1,45 +1,60 @@
+/// Reseña de un estudiante sobre una disciplina en la que se inscribió.
+///
+/// Se guarda en `resenas/{idEstudiante_idDeporte}`: el mismo id de su
+/// inscripción, así que hay una sola reseña por estudiante y disciplina.
 class Resena {
-  final String idDeporte;
-  final String idEstudiante;
-  final String nombreEstudiante;
-  final int calificacion;
-  final String comentario;
-  final DateTime fecha;
-  final bool editada;
-
-  Resena({
+  const Resena({
     required this.idDeporte,
     required this.idEstudiante,
     required this.nombreEstudiante,
     required this.calificacion,
     required this.comentario,
     required this.fecha,
-    required this.editada,
+    this.editada = false,
   });
 
-  String get id => '${idEstudiante}_$idDeporte';
+  final String idDeporte;
+  final String idEstudiante;
 
-  factory Resena.fromMap(Map<String, dynamic> data) {
+  /// Copiado del perfil al publicar, porque los demás no pueden leer el
+  /// perfil del estudiante.
+  final String nombreEstudiante;
+
+  /// De 1 a 5 estrellas.
+  final int calificacion;
+  final String comentario;
+
+  /// Fecha de la última edición.
+  final DateTime fecha;
+  final bool editada;
+
+  String get id => idPara(idEstudiante, idDeporte);
+
+  static String idPara(String idEstudiante, String idDeporte) =>
+      '${idEstudiante}_$idDeporte';
+
+  factory Resena.fromMap(Map<String, dynamic> datos) {
+    final fecha = datos['fecha'];
     return Resena(
-      idDeporte: data['idDeporte'] as String,
-      idEstudiante: data['idEstudiante'] as String,
-      nombreEstudiante: data['nombreEstudiante'] as String,
-      calificacion: data['calificacion'] as int,
-      comentario: data['comentario'] as String,
-      fecha: DateTime.parse(data['fecha'] as String),
-      editada: data['editada'] as bool? ?? false,
+      idDeporte: datos['idDeporte'] as String? ?? '',
+      idEstudiante: datos['idEstudiante'] as String? ?? '',
+      nombreEstudiante: datos['nombreEstudiante'] as String? ?? '',
+      calificacion: (datos['calificacion'] as num?)?.toInt() ?? 0,
+      comentario: datos['comentario'] as String? ?? '',
+      fecha: fecha is String
+          ? DateTime.tryParse(fecha) ?? DateTime.now()
+          : DateTime.now(),
+      editada: datos['editada'] as bool? ?? false,
     );
   }
 
-  Map<String, dynamic> toMap() {
-    return {
-      'idDeporte': idDeporte,
-      'idEstudiante': idEstudiante,
-      'nombreEstudiante': nombreEstudiante,
-      'calificacion': calificacion,
-      'comentario': comentario,
-      'fecha': fecha.toIso8601String(),
-      'editada': editada,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+    'idDeporte': idDeporte,
+    'idEstudiante': idEstudiante,
+    'nombreEstudiante': nombreEstudiante,
+    'calificacion': calificacion,
+    'comentario': comentario,
+    'fecha': fecha.toIso8601String(),
+    'editada': editada,
+  };
 }

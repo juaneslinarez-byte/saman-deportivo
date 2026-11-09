@@ -4,9 +4,10 @@ import 'package:flutter/foundation.dart';
 
 import '../core/validadores.dart';
 import '../modelos/modelos.dart';
-import '../modelos/resena.dart';
 import '../repositorios/repositorios.dart';
 
+/// Formulario de la reseña de un estudiante: estrellas, comentario, publicar,
+/// editar y eliminar. Se crea uno por pantalla.
 enum ResenaEstado { inicial, cargando, listo, error }
 
 class ResenaViewModel extends ChangeNotifier {
@@ -16,7 +17,7 @@ class ResenaViewModel extends ChangeNotifier {
 
   ResenaEstado _estado = ResenaEstado.inicial;
   Resena? _miResena;
-  int _calificacion = 5;
+  int _calificacion = 0;
   String _comentario = '';
   bool _guardando = false;
   String? _error;
@@ -33,7 +34,7 @@ class ResenaViewModel extends ChangeNotifier {
 
   bool get hayCambios {
     if (_miResena == null) {
-      return _comentario.trim().isNotEmpty || _calificacion != 5;
+      return _comentario.trim().isNotEmpty || _calificacion != 0;
     }
     return _miResena!.calificacion != _calificacion ||
         _miResena!.comentario != _comentario.trim();
@@ -84,7 +85,7 @@ class ResenaViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> guardar(String idEstudiante, String idDeporte) async {
+  Future<bool> guardar(Estudiante estudiante, String idDeporte) async {
     final validacion = Validadores.comentarioResena(_comentario);
     if (validacion != null) {
       _error = validacion;
@@ -98,17 +99,20 @@ class ResenaViewModel extends ChangeNotifier {
 
     try {
       await _resenaRepository.guardar(
-        idEstudiante,
-        idDeporte,
-        _calificacion,
-        _comentario.trim(),
+        estudiante: estudiante,
+        idDeporte: idDeporte,
+        calificacion: _calificacion,
+        comentario: _comentario.trim(),
       );
       _guardando = false;
       notifyListeners();
       return true;
     } catch (e) {
       _guardando = false;
-      _error = e.toString().replaceFirst('Exception: ', '');
+      final texto = e.toString();
+      _error = texto.startsWith('Exception: ')
+          ? texto.replaceFirst('Exception: ', '')
+          : 'No se pudo guardar tu reseña. Revisa tu conexión e inténtalo de nuevo.';
       notifyListeners();
       return false;
     }
@@ -127,7 +131,7 @@ class ResenaViewModel extends ChangeNotifier {
       _guardando = false;
       _miResena = null;
       _comentario = '';
-      _calificacion = 5;
+      _calificacion = 0;
       notifyListeners();
       return true;
     } catch (e) {
