@@ -228,34 +228,27 @@ abstract final class Validadores {
     return null;
   }
 
-  static String? comentarioResena(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'El comentario es obligatorio.';
+  /// Comentario de una reseña: de 10 a 300 caracteres, con al menos dos
+  /// palabras reales, mayoría de letras y sin relleno como «aaaaa».
+  static String? comentarioResena(String? valor) {
+    final texto = valor?.trim() ?? '';
+    if (texto.isEmpty) return 'Escribe tu comentario';
+    if (texto.length < 10) return 'Escribe al menos 10 caracteres';
+    if (texto.length > 300) return 'Máximo 300 caracteres';
+    final palabras = RegExp(r'[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]{2,}')
+        .allMatches(texto)
+        .map((m) => m.group(0)!)
+        .toList();
+    final conVocal = palabras.where((p) => _vocal.hasMatch(p)).length;
+    if (conVocal < 2) return 'Escribe un comentario con palabras reales';
+    final letras = RegExp(r'[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]').allMatches(texto).length;
+    final sinEspacios = texto.replaceAll(RegExp(r'\s'), '').length;
+    if (letras * 2 < sinEspacios) {
+      return 'Usa principalmente letras, no números ni símbolos';
     }
-
-    final textoLimpio = value.trim();
-
-    if (textoLimpio.length < 10) {
-      return 'El comentario debe tener al menos 10 caracteres.';
+    if (RegExp(r'(.)\1{3,}').hasMatch(texto)) {
+      return 'Revisa las letras repetidas';
     }
-
-    if (textoLimpio.length > 300) {
-      return 'El comentario no puede exceder los 300 caracteres.';
-    }
-
-    final tieneLetras = RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]').hasMatch(textoLimpio);
-    final tieneVocales = RegExp(r'[aeiouáéíóúAEIOUÁÉÍÓÚ]')
-        .hasMatch(textoLimpio);
-
-    if (!tieneLetras || !tieneVocales) {
-      return 'El comentario debe contener letras y palabras reales.';
-    }
-
-    final repeticionExcesiva = RegExp(r'(.)\1{4,}').hasMatch(textoLimpio);
-    if (repeticionExcesiva) {
-      return 'El comentario parece ser de relleno.';
-    }
-
     return null;
   }
 

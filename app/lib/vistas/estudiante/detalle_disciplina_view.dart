@@ -8,6 +8,9 @@ import '../../core/rutas.dart';
 import '../../modelos/modelos.dart';
 import '../../repositorios/repositorios.dart';
 import '../../viewmodels/detalle_disciplina_viewmodel.dart';
+import '../../viewmodels/perfil_viewmodel.dart';
+import '../comun/resenas_componentes.dart';
+import 'formulario_resena_view.dart';
 
 /// Detalle de una disciplina (RF-EST-03): foto, descripción, lugar, horario
 /// semanal y cupos en tiempo real. Se abre desde el catálogo, que le pasa el
@@ -202,6 +205,8 @@ class _Contenido extends StatelessWidget {
         _SeccionCupos(deporte: deporte, ocupacion: ocupacion),
         const SizedBox(height: 24),
         _BotonInscribirse(deporte: deporte),
+        const SizedBox(height: 24),
+        _SeccionResenas(deporte: deporte),
       ],
     );
   }
@@ -526,6 +531,163 @@ class _Mensaje extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Reseñas de la disciplina en tiempo real: promedio, distribución por
+/// estrellas y las 5 más recientes. Solo opina quien se inscribió.
+class _SeccionResenas extends StatefulWidget {
+  const _SeccionResenas({required this.deporte});
+
+  final Deporte deporte;
+
+  @override
+  State<_SeccionResenas> createState() => _SeccionResenasState();
+}
+
+class _SeccionResenasState extends State<_SeccionResenas> {
+  Stream<List<Resena>>? _resenas;
+  Stream<List<Inscripcion>>? _mias;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resenas ??= context.read<ResenaRepository>().observarPorDeporte(
+      widget.deporte.id,
+    );
+    final perfil = context.read<PerfilViewModel>().perfil;
+    if (_mias == null && perfil is Estudiante) {
+      _mias = context.read<InscripcionRepository>().observarPorEstudiante(
+        perfil.id,
+      );
+    }
+  }
+
+  void _verTodas(List<Resena> resenas) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: ColoresSaman.fondo,
+      builder: (ctx) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.8,
+        builder: (ctx, controlador) => ListView(
+          controller: controlador,
+          padding: const EdgeInsets.all(20),
+          children: [
+            _Titulo('Reseñas de ${widget.deporte.nombre}'),
+            const SizedBox(height: 12),
+            for (final r in resenas) TarjetaResena(resena: r),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: _decoracionTarjeta(),
+      child: StreamBuilder<List<Resena>>(
+        stream: _resenas,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Text(
+              'No se pudieron cargar las reseñas.',
+              style: TextStyle(color: ColoresSaman.textoSecundario),
+            );
+          }
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(color: ColoresSaman.naranja),
+            );
+          }
+          final resenas = snapshot.data!;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Expanded(child: _Titulo('Reseñas')),
+                  if (resenas.isNotEmpty)
+                    Text(
+                      '${Resenas.formatoPromedio(Resenas.promedio(resenas)!)} ★ · '
+                      '${Resenas.cantidad(resenas.length)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: ColoresSaman.ambar,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              if (resenas.isEmpty)
+                const Text(
+                  'Aún no hay reseñas. Sé el primero en opinar.',
+                  style: TextStyle(color: ColoresSaman.textoSecundario),
+                )
+              else ...[
+                ResumenResenas(resenas: resenas),
+                const SizedBox(height: 16),
+                for (final r in resenas.take(5)) TarjetaResena(resena: r),
+                if (resenas.length > 5)
+                  TextButton(
+                    onPressed: () => _verTodas(resenas),
+                    child: Text('Ver todas (${resenas.length})'),
+                  ),
+              ],
+              const SizedBox(height: 8),
+              _BotonOpinar(deporte: widget.deporte, mias: _mias),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// «Dejar reseña» o «Editar mi reseña» si el estudiante se inscribió alguna
+/// vez; si no, explica que debe inscribirse para opinar.
+class _BotonOpinar extends StatelessWidget {
+  const _BotonOpinar({required this.deporte, required this.mias});
+
+  final Deporte deporte;
+  final Stream<List<Inscripcion>>? mias;
+
+  @override
+  Widget build(BuildContext context) {
+    final perfil = context.read<PerfilViewModel>().perfil;
+    if (perfil is! Estudiante || mias == null) return const SizedBox.shrink();
+    return StreamBuilder<List<Inscripcion>>(
+      stream: mias,
+      builder: (context, snapshot) {
+        final inscrito = (snapshot.data ?? const <Inscripcion>[]).any(
+          (i) => i.idDeporte == deporte.id,
+        );
+        if (!inscrito) {
+          return const Text(
+            'Inscríbete para poder opinar.',
+            style: TextStyle(fontSize: 13, color: ColoresSaman.textoSecundario),
+          );
+        }
+        return OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: ColoresSaman.ambar,
+            side: BorderSide(color: ColoresSaman.ambar.withValues(alpha: 0.5)),
+            shape: const StadiumBorder(),
+          ),
+          onPressed: () => FormularioResenaView.abrir(
+            context,
+            estudiante: perfil,
+            idDeporte: deporte.id,
+            nombreDeporte: deporte.nombre,
+          ),
+          icon: const Icon(Icons.rate_review_outlined, size: 18),
+          label: const Text('Dejar o editar mi reseña'),
+        );
+      },
     );
   }
 }

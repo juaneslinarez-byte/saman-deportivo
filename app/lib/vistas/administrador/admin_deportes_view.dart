@@ -11,6 +11,7 @@ import '../comun/campos_formulario.dart';
 import '../comun/disenio.dart';
 import 'deporte_form_view.dart';
 import 'inscritos_admin_view.dart';
+import 'resenas_admin_view.dart';
 import 'sesiones_cupos_view.dart';
 import 'admin_usuarios_view.dart';
 
@@ -358,6 +359,21 @@ class _TarjetaDeporte extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) =>
                           InscritosAdminView(deporte: deporte),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.star_outline_rounded,
+                  color: ColoresSaman.azulOscuro,
+                ),
+                tooltip: 'Reseñas',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ResenasAdminView(deporte: deporte),
                     ),
                   );
                 },

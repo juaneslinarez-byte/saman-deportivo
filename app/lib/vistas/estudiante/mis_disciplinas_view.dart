@@ -318,23 +318,6 @@ class _TarjetaActiva extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-              const SizedBox(height: 12),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.star_rate_rounded),
-                label: const Text('Dejar / Editar reseña'),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => FormularioResenaView(
-                        idEstudiante: item.inscripcion.id,
-                        idDeporte: item.inscripcion.id,
-                        nombreDeporte: item.nombre,
-                      ),
-                    ),
-                  );
-                },
-              ),
               const SizedBox(width: 10),
               _Etiqueta(
                 'Inscrito',
@@ -356,6 +339,7 @@ class _TarjetaActiva extends StatelessWidget {
             spacing: 10,
             runSpacing: 8,
             children: [
+              _BotonResena(item: item),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: ColoresSaman.naranja,
@@ -466,7 +450,15 @@ class _TarjetaCancelada extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 14),
-          _VolverAInscribirme(deporte: item.deporte),
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _VolverAInscribirme(deporte: item.deporte),
+              _BotonResena(item: item),
+            ],
+          ),
         ],
       ),
     );
@@ -643,6 +635,71 @@ class _Mensaje extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// «Dejar reseña» o «Editar mi reseña» con sus estrellas: quien se inscribió
+/// en la disciplina, activa o cancelada, puede opinar sobre ella.
+class _BotonResena extends StatefulWidget {
+  const _BotonResena({required this.item});
+
+  final InscripcionConDeporte item;
+
+  @override
+  State<_BotonResena> createState() => _BotonResenaState();
+}
+
+class _BotonResenaState extends State<_BotonResena> {
+  Stream<Resena?>? _mia;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final perfil = context.read<PerfilViewModel>().perfil;
+    if (_mia == null && perfil is Estudiante) {
+      _mia = context.read<ResenaRepository>().observarMia(
+        perfil.id,
+        widget.item.inscripcion.idDeporte,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final perfil = context.read<PerfilViewModel>().perfil;
+    if (perfil is! Estudiante) return const SizedBox.shrink();
+    final item = widget.item;
+    final idDeporte = item.inscripcion.idDeporte;
+    return StreamBuilder<Resena?>(
+      stream: _mia,
+      builder: (context, snapshot) {
+        final mia = snapshot.data;
+        return OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: ColoresSaman.ambar,
+            side: BorderSide(color: ColoresSaman.ambar.withValues(alpha: 0.5)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            shape: const StadiumBorder(),
+          ),
+          onPressed: () => FormularioResenaView.abrir(
+            context,
+            estudiante: perfil,
+            idDeporte: idDeporte,
+            nombreDeporte: item.nombre,
+          ),
+          icon: Icon(
+            mia == null ? Icons.star_outline_rounded : Icons.star_rounded,
+            size: 18,
+          ),
+          label: Text(
+            mia == null
+                ? 'Dejar reseña'
+                : 'Editar mi reseña (${mia.calificacion}★)',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+        );
+      },
     );
   }
 }

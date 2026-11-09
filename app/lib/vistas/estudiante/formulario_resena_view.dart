@@ -1,20 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/colores.dart';
 import '../../core/validadores.dart';
+import '../../modelos/modelos.dart';
+import '../../repositorios/repositorios.dart';
 import '../../viewmodels/resena_viewmodel.dart';
 
+/// «Tu reseña de» una disciplina: el estudiante califica con estrellas y
+/// comenta la disciplina en la que se inscribió; puede editarla o borrarla.
 class FormularioResenaView extends StatefulWidget {
-  final String idEstudiante;
+  final Estudiante estudiante;
   final String idDeporte;
   final String nombreDeporte;
 
   const FormularioResenaView({
     super.key,
-    required this.idEstudiante,
+    required this.estudiante,
     required this.idDeporte,
     required this.nombreDeporte,
   });
+
+  /// Abre el formulario con su propio ViewModel.
+  static Future<void> abrir(
+    BuildContext context, {
+    required Estudiante estudiante,
+    required String idDeporte,
+    required String nombreDeporte,
+  }) {
+    final repositorio = context.read<ResenaRepository>();
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChangeNotifierProvider<ResenaViewModel>(
+          create: (_) => ResenaViewModel(repositorio),
+          child: FormularioResenaView(
+            estudiante: estudiante,
+            idDeporte: idDeporte,
+            nombreDeporte: nombreDeporte,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   State<FormularioResenaView> createState() => _FormularioResenaViewState();
@@ -37,7 +64,7 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final viewModel = Provider.of<ResenaViewModel>(context, listen: false);
-      viewModel.cargar(widget.idEstudiante, widget.idDeporte);
+      viewModel.cargar(widget.estudiante.id, widget.idDeporte);
     });
   }
 
@@ -80,11 +107,11 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
       ),
     );
 
-    if (confirm == true && mounted) {
+    if (confirm == true && context.mounted) {
       final messenger = ScaffoldMessenger.of(context);
       final navigator = Navigator.of(context);
       final success = await viewModel.eliminar();
-      if (success && mounted) {
+      if (success && context.mounted) {
         messenger.showSnackBar(
           const SnackBar(
             content: Text('Reseña eliminada correctamente'),
@@ -101,7 +128,7 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final success = await viewModel.guardar(
-      widget.idEstudiante,
+      widget.estudiante,
       widget.idDeporte,
     );
 
@@ -109,7 +136,7 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
       messenger.showSnackBar(
         const SnackBar(
           content: Text('¡Gracias por tu reseña!'),
-          backgroundColor: Colors.green,
+          backgroundColor: ColoresSaman.verde,
         ),
       );
       navigator.pop();
@@ -119,6 +146,7 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ColoresSaman.fondo,
       appBar: AppBar(title: Text('Tu reseña de ${widget.nombreDeporte}')),
       body: Consumer<ResenaViewModel>(
         builder: (context, viewModel, child) {
@@ -137,8 +165,10 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () =>
-                        viewModel.cargar(widget.idEstudiante, widget.idDeporte),
+                    onPressed: () => viewModel.cargar(
+                      widget.estudiante.id,
+                      widget.idDeporte,
+                    ),
                     child: const Text('Reintentar'),
                   ),
                 ],
@@ -157,114 +187,123 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
               ? _ratingLabels[viewModel.calificacion - 1]
               : '';
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Calificación',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) {
-                      final starValue = index + 1;
-                      final isSelected = starValue <= viewModel.calificacion;
-                      return IconButton(
-                        iconSize: 40,
-                        icon: Icon(
-                          isSelected ? Icons.star : Icons.star_border,
-                          color: isSelected ? Colors.amber : Colors.grey,
+          return Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Calificación',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                        onPressed: viewModel.guardando
-                            ? null
-                            : () => viewModel.setCalificacion(starValue),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    ratingLabel,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.amber,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  TextFormField(
-                    controller: _commentController,
-                    enabled: !viewModel.guardando,
-                    maxLines: 4,
-                    maxLength: 300,
-                    decoration: InputDecoration(
-                      labelText: 'Comentario',
-                      hintText:
-                          'Cuéntanos tu experiencia (10 a 300 caracteres)...',
-                      border: const OutlineInputBorder(),
-                      counterText:
-                          '${_commentController.text.trim().length}/300',
-                    ),
-                    validator: Validadores.comentarioResena,
-                    onChanged: (text) {
-                      viewModel.setComentario(text);
-                      setState(() {});
-                    },
-                  ),
-                  if (viewModel.error != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      viewModel.error!,
-                      style: const TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: viewModel.puedeGuardar
-                        ? () => _submitForm(viewModel)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    child: viewModel.guardando
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(
-                            viewModel.esEdicion
-                                ? 'Guardar cambios'
-                                : 'Publicar',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                  ),
-                  if (viewModel.esEdicion) ...[
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: viewModel.guardando
-                          ? null
-                          : () => _confirmDelete(context, viewModel),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        textAlign: TextAlign.center,
                       ),
-                      child: const Text('Eliminar mi reseña'),
-                    ),
-                  ],
-                ],
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          final starValue = index + 1;
+                          final isSelected =
+                              starValue <= viewModel.calificacion;
+                          return IconButton(
+                            iconSize: 40,
+                            icon: Icon(
+                              isSelected ? Icons.star : Icons.star_border,
+                              color: isSelected ? Colors.amber : Colors.grey,
+                            ),
+                            onPressed: viewModel.guardando
+                                ? null
+                                : () => viewModel.setCalificacion(starValue),
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        ratingLabel,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.amber,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _commentController,
+                        enabled: !viewModel.guardando,
+                        maxLines: 4,
+                        maxLength: 300,
+                        decoration: InputDecoration(
+                          labelText: 'Comentario',
+                          hintText: 'Cuéntanos tu experiencia (10 a 300 caracteres)...',
+                          border: const OutlineInputBorder(),
+                          counterText:
+                              '${_commentController.text.trim().length}/300',
+                        ),
+                        validator: Validadores.comentarioResena,
+                        onChanged: (text) {
+                          viewModel.setComentario(text);
+                          setState(() {});
+                        },
+                      ),
+                      if (viewModel.error != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          viewModel.error!,
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: viewModel.puedeGuardar
+                            ? () => _submitForm(viewModel)
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: viewModel.guardando
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                viewModel.esEdicion
+                                    ? 'Guardar cambios'
+                                    : 'Publicar',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                      ),
+                      if (viewModel.esEdicion) ...[
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: viewModel.guardando
+                              ? null
+                              : () => _confirmDelete(context, viewModel),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red,
+                            side: const BorderSide(color: Colors.red),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: const Text('Eliminar mi reseña'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
           );
