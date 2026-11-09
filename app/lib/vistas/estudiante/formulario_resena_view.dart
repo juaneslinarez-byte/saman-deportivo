@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../core/validadores.dart';
 import '../../viewmodels/resena_viewmodel.dart';
 
@@ -53,7 +54,10 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, ResenaViewModel viewModel) async {
+  Future<void> _confirmDelete(
+    BuildContext context,
+    ResenaViewModel viewModel,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -115,9 +119,7 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Tu reseña de ${widget.nombreDeporte}'),
-      ),
+      appBar: AppBar(title: Text('Tu reseña de ${widget.nombreDeporte}')),
       body: Consumer<ResenaViewModel>(
         builder: (context, viewModel, child) {
           if (viewModel.estado == ResenaEstado.cargando) {
@@ -135,10 +137,8 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => viewModel.cargar(
-                      widget.idEstudiante,
-                      widget.idDeporte,
-                    ),
+                    onPressed: () =>
+                        viewModel.cargar(widget.idEstudiante, widget.idDeporte),
                     child: const Text('Reintentar'),
                   ),
                 ],
@@ -152,8 +152,8 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
             _syncComment(viewModel.comentario);
           }
 
-          final ratingLabel = viewModel.calificacion >= 1 &&
-                  viewModel.calificacion <= 5
+          final ratingLabel =
+              viewModel.calificacion >= 1 && viewModel.calificacion <= 5
               ? _ratingLabels[viewModel.calificacion - 1]
               : '';
 
@@ -167,10 +167,7 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
                 children: [
                   const Text(
                     'Calificación',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
@@ -209,9 +206,11 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
                     maxLength: 300,
                     decoration: InputDecoration(
                       labelText: 'Comentario',
-                      hintText: 'Cuéntanos tu experiencia (10 a 300 caracteres)...',
+                      hintText:
+                          'Cuéntanos tu experiencia (10 a 300 caracteres)...',
                       border: const OutlineInputBorder(),
-                      counterText: '${_commentController.text.trim().length}/300',
+                      counterText:
+                          '${_commentController.text.trim().length}/300',
                     ),
                     validator: Validadores.comentarioResena,
                     onChanged: (text) {

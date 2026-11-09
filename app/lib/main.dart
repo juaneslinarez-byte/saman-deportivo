@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'core/rutas.dart';
 import 'core/tema.dart';
 import 'firebase_options.dart';
@@ -57,15 +58,11 @@ class MyApp extends StatelessWidget {
     // reemplazan por los repositorios falsos sin tocar nada más.
     return MultiProvider(
       providers: [
-        
-      Provider<ResenaRepository>(
-        create: (_) => ResenaRepositoryFirebase(),
+        Provider<ResenaRepository>(create: (_) => ResenaRepositoryFirebase()),
+        ChangeNotifierProvider<ResenaViewModel>(
+          create: (context) =>
+              ResenaViewModel(context.read<ResenaRepository>()),
         ),
-      ChangeNotifierProvider<ResenaViewModel>(
-        create: (context) => ResenaViewModel(
-          context.read<ResenaRepository>(),
-  ),
-),
 
         Provider<AuthRepository>(create: (_) => AuthRepositoryFirebase()),
         Provider<UsuarioRepository>(create: (_) => UsuarioRepositoryFirebase()),

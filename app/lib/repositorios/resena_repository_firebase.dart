@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../modelos/inscripcion.dart';
 import '../modelos/resena.dart';
 import 'resena_repository.dart';
@@ -7,7 +8,7 @@ class ResenaRepositoryFirebase implements ResenaRepository {
   final FirebaseFirestore _firestore;
 
   ResenaRepositoryFirebase({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   get _resenasRef => _firestore.collection('resenas');
   get _inscripcionesRef => _firestore.collection('inscripciones');
@@ -24,7 +25,9 @@ class ResenaRepositoryFirebase implements ResenaRepository {
     final docInscripcion = await _inscripcionesRef.doc(idInscripcion).get();
 
     if (!docInscripcion.exists) {
-      throw Exception('Solo puedes reseñar disciplinas en las que te inscribiste');
+      throw Exception(
+        'Solo puedes reseñar disciplinas en las que te inscribiste',
+      );
     }
 
     final docUsuario = await _usuariosRef.doc(idEstudiante).get();
@@ -60,16 +63,15 @@ class ResenaRepositoryFirebase implements ResenaRepository {
 
   @override
   Stream<List<Resena>> observarPorDeporte(String idDeporte) {
-    return _resenasRef
-        .where('idDeporte', isEqualTo: idDeporte)
-        .snapshots()
-        .map((QuerySnapshot snapshot) {
-      final lista = snapshot.docs
-          .map((doc) => Resena.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
-      lista.sort((a, b) => b.fecha.compareTo(a.fecha));
-      return lista;
-    });
+    return _resenasRef.where('idDeporte', isEqualTo: idDeporte).snapshots().map(
+      (QuerySnapshot snapshot) {
+        final lista = snapshot.docs
+            .map((doc) => Resena.fromMap(doc.data() as Map<String, dynamic>))
+            .toList();
+        lista.sort((a, b) => b.fecha.compareTo(a.fecha));
+        return lista;
+      },
+    );
   }
 
   @override

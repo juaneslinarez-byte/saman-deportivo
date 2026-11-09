@@ -227,29 +227,30 @@ abstract final class Validadores {
     }
     return null;
   }
-  
+
   static String? comentarioResena(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'El comentario es obligatorio.';
     }
-    
+
     final textoLimpio = value.trim();
-    
+
     if (textoLimpio.length < 10) {
       return 'El comentario debe tener al menos 10 caracteres.';
     }
-    
+
     if (textoLimpio.length > 300) {
       return 'El comentario no puede exceder los 300 caracteres.';
     }
-    
+
     final tieneLetras = RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]').hasMatch(textoLimpio);
-    final tieneVocales = RegExp(r'[aeiouáéíóúAEIOUÁÉÍÓÚ]').hasMatch(textoLimpio);
-    
+    final tieneVocales = RegExp(r'[aeiouáéíóúAEIOUÁÉÍÓÚ]')
+        .hasMatch(textoLimpio);
+
     if (!tieneLetras || !tieneVocales) {
       return 'El comentario debe contener letras y palabras reales.';
     }
-    
+
     final repeticionExcesiva = RegExp(r'(.)\1{4,}').hasMatch(textoLimpio);
     if (repeticionExcesiva) {
       return 'El comentario parece ser de relleno.';
