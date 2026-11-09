@@ -140,6 +140,8 @@ class InicioView extends StatelessWidget {
                 'assets/imagenes/logo_saman.jpg',
                 height: 32,
                 width: 32,
+                // Se decodifica al tamaño en que se ve, no a 512 px.
+                cacheWidth: 96,
               ),
             ),
             const SizedBox(width: 10),

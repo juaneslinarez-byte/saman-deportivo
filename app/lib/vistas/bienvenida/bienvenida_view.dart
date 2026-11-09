@@ -382,6 +382,8 @@ class _BarraSuperior extends StatelessWidget {
                 'assets/imagenes/logo_saman.jpg',
                 height: 54,
                 width: 54,
+                // Se decodifica al tamaño en que se ve, no a 512 px.
+                cacheWidth: 162,
               ),
             ),
           ),
@@ -678,7 +680,10 @@ class _IlustracionPortada extends StatelessWidget {
                   height: 220,
                   padding: const EdgeInsets.all(12),
                   decoration: _decoracionTarjeta(radio: 20),
-                  child: Image.asset('assets/imagenes/logo_saman.jpg'),
+                  child: Image.asset(
+                    'assets/imagenes/logo_saman.jpg',
+                    cacheWidth: 400,
+                  ),
                 ),
               ),
             ),
