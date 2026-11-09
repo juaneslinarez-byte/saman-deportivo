@@ -8,7 +8,7 @@ import '../../modelos/modelos.dart';
 import '../../repositorios/repositorios.dart';
 import '../../viewmodels/mis_inscripciones_viewmodel.dart';
 import '../../viewmodels/perfil_viewmodel.dart';
-
+import 'formulario_resena_view.dart';
 /// «Mis disciplinas» (CU-04): las inscripciones activas del estudiante, su
 /// historial de canceladas y la cancelación con confirmación.
 class MisDisciplinasView extends StatelessWidget {
@@ -317,6 +317,23 @@ class _TarjetaActiva extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
+const SizedBox(height: 12),
+ElevatedButton.icon(
+  icon: const Icon(Icons.star_rate_rounded),
+  label: const Text('Dejar / Editar reseña'),
+  onPressed: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FormularioResenaView(
+          idEstudiante: item.inscripcion.id, 
+          idDeporte: item.inscripcion.id, 
+          nombreDeporte: item.nombre,
+        ),
+      ),
+    );
+  },
+),
               const SizedBox(width: 10),
               _Etiqueta(
                 'Inscrito',

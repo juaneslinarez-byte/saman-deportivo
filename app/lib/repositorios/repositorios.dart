@@ -8,3 +8,5 @@ export 'deporte_repository.dart';
 export 'inscripcion_repository.dart';
 export 'pago_repository.dart';
 export 'usuario_repository.dart';
+export 'resena_repository.dart';
+export 'resena_repository_firebase.dart';

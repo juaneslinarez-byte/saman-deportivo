@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import 'core/rutas.dart';
 import 'core/tema.dart';
 import 'firebase_options.dart';
@@ -39,6 +38,7 @@ import 'vistas/inicio/en_construccion_view.dart';
 import 'vistas/inicio/inicio_view.dart';
 import 'vistas/perfil/editar_perfil_view.dart';
 import 'vistas/perfil/perfil_view.dart';
+import 'viewmodels/resena_viewmodel.dart';
 
 Future<void> main() async {
   // Firebase debe estar listo antes de que la app use los repositorios.
@@ -57,6 +57,16 @@ class MyApp extends StatelessWidget {
     // reemplazan por los repositorios falsos sin tocar nada más.
     return MultiProvider(
       providers: [
+        
+      Provider<ResenaRepository>(
+        create: (_) => ResenaRepositoryFirebase(),
+        ),
+      ChangeNotifierProvider<ResenaViewModel>(
+        create: (context) => ResenaViewModel(
+          context.read<ResenaRepository>(),
+  ),
+),
+
         Provider<AuthRepository>(create: (_) => AuthRepositoryFirebase()),
         Provider<UsuarioRepository>(create: (_) => UsuarioRepositoryFirebase()),
         Provider<DeporteRepository>(create: (_) => DeporteRepositoryFirebase()),

@@ -11,3 +11,4 @@ export 'inscripcion.dart';
 export 'pago.dart';
 export 'persona.dart';
 export 'sesion.dart';
+export 'resena.dart';
