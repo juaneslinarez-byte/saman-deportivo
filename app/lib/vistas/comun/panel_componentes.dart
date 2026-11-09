@@ -88,27 +88,51 @@ class TarjetaIndicador extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              IconoAcento(icono: icono, color: acento, tamano: 36),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  titulo,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: ColoresSaman.textoSecundario,
-                  ),
+          // En tarjetas angostas (teléfono) el título va debajo del ícono
+          // para que no se parta a mitad de palabra.
+          LayoutBuilder(
+            builder: (context, restricciones) {
+              final angosta = restricciones.maxWidth < 200;
+              final textoTitulo = Text(
+                titulo,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: ColoresSaman.textoSecundario,
                 ),
-              ),
-              if (ruta != null)
-                const Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: ColoresSaman.textoTenue,
-                ),
-            ],
+              );
+              final flecha = ruta == null
+                  ? null
+                  : const Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: ColoresSaman.textoTenue,
+                    );
+              if (angosta) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        IconoAcento(icono: icono, color: acento, tamano: 36),
+                        const Spacer(),
+                        ?flecha,
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    textoTitulo,
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  IconoAcento(icono: icono, color: acento, tamano: 36),
+                  const SizedBox(width: 10),
+                  Expanded(child: textoTitulo),
+                  ?flecha,
+                ],
+              );
+            },
           ),
           const SizedBox(height: 12),
           Text(
