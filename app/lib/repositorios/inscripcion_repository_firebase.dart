@@ -32,7 +32,13 @@ class InscripcionRepositoryFirebase implements InscripcionRepository {
     final refInscripcion = _inscripciones.doc(id);
     final refDeporte = _deportes.doc(deporte.id);
 
-    return _db.runTransaction((transaccion) async {
+    // En la web, una excepción lanzada dentro de la transacción llega
+    // envuelta y pierde su tipo, así que el motivo se guarda aparte y se
+    // lanza al terminar.
+    MotivoRechazo? rechazo;
+    final resultado = await _db.runTransaction<Inscripcion?>((
+      transaccion,
+    ) async {
       // En una transacción se lee todo antes de escribir.
       final docDeporte = await transaccion.get(refDeporte);
       final docInscripcion = await transaccion.get(refInscripcion);
@@ -47,10 +53,12 @@ class InscripcionRepositoryFirebase implements InscripcionRepository {
           ? null
           : Inscripcion.fromMap(id, docInscripcion.data()!);
       if (anterior != null && anterior.estaActiva) {
-        throw const InscripcionRechazada(MotivoRechazo.yaInscrito);
+        rechazo = MotivoRechazo.yaInscrito;
+        return null;
       }
       if (!cupos.hayCupo) {
-        throw const InscripcionRechazada(MotivoRechazo.sinCupo);
+        rechazo = MotivoRechazo.sinCupo;
+        return null;
       }
 
       final ahora = DateTime.now();
@@ -88,6 +96,9 @@ class InscripcionRepositoryFirebase implements InscripcionRepository {
         fecha: ahora,
       );
     });
+    final motivo = rechazo;
+    if (motivo != null) throw InscripcionRechazada(motivo);
+    return resultado!;
   }
 
   /// Cancela y devuelve el cupo en la misma transacción. La inscripción no
