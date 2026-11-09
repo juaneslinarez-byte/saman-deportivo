@@ -61,14 +61,10 @@ class _RecuperarPasswordViewState extends State<RecuperarPasswordView> {
     return Scaffold(
       backgroundColor: ColoresSaman.fondo,
       appBar: AppBar(
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
         title: const Text(
           'Recuperar contraseña',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        centerTitle: true,
       ),
       body: Center(
         child: SingleChildScrollView(

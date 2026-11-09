@@ -6,6 +6,7 @@ import '../../core/rutas.dart';
 import '../../modelos/modelos.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/perfil_viewmodel.dart';
+import '../comun/disenio.dart';
 
 class PerfilView extends StatelessWidget {
   const PerfilView({super.key});
@@ -25,10 +26,6 @@ class PerfilView extends StatelessWidget {
           'Mi Perfil',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
-        centerTitle: true,
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -70,22 +67,9 @@ class PerfilView extends StatelessWidget {
     required Color orangeUnimet,
     required Color greyBg,
   }) {
-    String inicial = nombre.isNotEmpty ? nombre[0].toUpperCase() : 'U';
-
     return Column(
       children: [
-        CircleAvatar(
-          radius: 48,
-          backgroundColor: ColoresSaman.naranjaSuave,
-          child: Text(
-            inicial,
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              color: orangeUnimet,
-            ),
-          ),
-        ),
+        Aparecer(child: AvatarIniciales(nombre: nombre, tamano: 96)),
         const SizedBox(height: 16),
 
         Text(
@@ -102,7 +86,7 @@ class PerfilView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: orangeUnimet,
+            gradient: ColoresSaman.degradadoNoche,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(

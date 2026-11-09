@@ -142,14 +142,22 @@ void main() {
         InicioView.seccionesPara(persona).map((s) => s.ruta).toList();
 
     expect(rutas(_estudiante), [
+      Rutas.panelEstudiante,
       Rutas.catalogo,
       Rutas.misDisciplinas,
+      Rutas.solvencia,
       Rutas.perfil,
     ]);
-    expect(rutas(_entrenadora), [Rutas.disciplinasEntrenador, Rutas.perfil]);
+    expect(rutas(_entrenadora), [
+      Rutas.panelEntrenador,
+      Rutas.disciplinasEntrenador,
+      Rutas.perfil,
+    ]);
     expect(rutas(_administrador), [
+      Rutas.adminPanel,
       Rutas.adminDeportes,
       Rutas.adminUsuarios,
+      Rutas.adminPagos,
       Rutas.perfil,
     ]);
   });

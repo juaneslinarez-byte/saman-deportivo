@@ -29,11 +29,20 @@
     ],
     "headers": [
       {
-        "source": "**/*.@(js|wasm|json|png|ttf|otf)",
+        "source": "**/*.@(js|wasm|json|mjs|ttf|otf|woff2)",
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "max-age=3600"
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(png|jpg|jpeg)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=86400"
           }
         ]
       },

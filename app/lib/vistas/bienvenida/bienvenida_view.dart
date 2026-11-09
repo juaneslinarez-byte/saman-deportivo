@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/colores.dart';
 import '../../core/rutas.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 
 /// Página de bienvenida (landing), según la pantalla «Landing» del prototipo
 /// en Figma: barra de navegación, portada, disciplinas, tarjetas por actor,
@@ -38,8 +40,19 @@ class _BienvenidaViewState extends State<BienvenidaView> {
 
   void _registrarse() => Navigator.pushNamed(context, Rutas.registro);
 
+  /// Quien ya inició sesión vuelve a su inicio sin pasar por el login.
+  void _irAMiCuenta() =>
+      Navigator.pushNamedAndRemoveUntil(context, Rutas.inicio, (ruta) => false);
+
   @override
   Widget build(BuildContext context) {
+    // Con sesión iniciada, los botones de entrar y registrarse se cambian
+    // por «Ir a mi cuenta». Sin AuthViewModel (por ejemplo, en las pruebas)
+    // se trata como visitante.
+    final conSesion = context.watch<AuthViewModel?>()?.estaAutenticado ?? false;
+    final alEntrar = conSesion ? _irAMiCuenta : _iniciarSesion;
+    final alRegistrar = conSesion ? _irAMiCuenta : _registrarse;
+
     return Scaffold(
       backgroundColor: ColoresSaman.blanco,
       body: LayoutBuilder(
@@ -53,8 +66,9 @@ class _BienvenidaViewState extends State<BienvenidaView> {
                 aDisciplinas: () => _irA(_claveDisciplinas),
                 aComoFunciona: () => _irA(_claveComoFunciona),
                 aContacto: () => _irA(_claveContacto),
-                alIniciarSesion: _iniciarSesion,
-                alRegistrarse: _registrarse,
+                alIniciarSesion: alEntrar,
+                alRegistrarse: alRegistrar,
+                conSesion: conSesion,
               ),
               Expanded(
                 child: SingleChildScrollView(
@@ -63,24 +77,29 @@ class _BienvenidaViewState extends State<BienvenidaView> {
                       _Portada(
                         key: _claveInicio,
                         ancho: ancho,
-                        alRegistrarse: _registrarse,
-                        alIniciarSesion: _iniciarSesion,
+                        alRegistrarse: alRegistrar,
+                        alIniciarSesion: alEntrar,
+                        conSesion: conSesion,
                       ),
                       _SeccionDisciplinas(
                         key: _claveDisciplinas,
                         ancho: ancho,
-                        alVerTodas: _iniciarSesion,
+                        alVerTodas: alEntrar,
                       ),
-                      _SeccionActores(ancho: ancho, alEntrar: _iniciarSesion),
+                      _SeccionActores(ancho: ancho, alEntrar: alEntrar),
                       _SeccionPasos(key: _claveComoFunciona, ancho: ancho),
-                      _Llamado(ancho: ancho, alRegistrarse: _registrarse),
+                      _Llamado(
+                        ancho: ancho,
+                        alRegistrarse: alRegistrar,
+                        conSesion: conSesion,
+                      ),
                       _Pie(
                         key: _claveContacto,
                         ancho: ancho,
                         aDisciplinas: () => _irA(_claveDisciplinas),
                         aComoFunciona: () => _irA(_claveComoFunciona),
-                        alIniciarSesion: _iniciarSesion,
-                        alRegistrarse: _registrarse,
+                        alIniciarSesion: alEntrar,
+                        alRegistrarse: alRegistrar,
                       ),
                     ],
                   ),
@@ -325,9 +344,11 @@ class _BarraSuperior extends StatelessWidget {
     required this.aContacto,
     required this.alIniciarSesion,
     required this.alRegistrarse,
+    this.conSesion = false,
   });
 
   final double ancho;
+  final bool conSesion;
   final VoidCallback alInicio;
   final VoidCallback aDisciplinas;
   final VoidCallback aComoFunciona;
@@ -361,6 +382,8 @@ class _BarraSuperior extends StatelessWidget {
                 'assets/imagenes/logo_saman.jpg',
                 height: 54,
                 width: 54,
+                // Se decodifica al tamaño en que se ve, no a 512 px.
+                cacheWidth: 162,
               ),
             ),
           ),
@@ -374,15 +397,19 @@ class _BarraSuperior extends StatelessWidget {
           const Spacer(),
           // En el teléfono la portada ya trae los dos botones, así que la
           // barra solo deja «Registrarse».
-          if (ancho >= 600) ...[
-            _BotonBlanco(
-              texto: 'Iniciar sesión',
-              alPulsar: alIniciarSesion,
-              borde: true,
-            ),
-            const SizedBox(width: 12),
+          if (conSesion)
+            _BotonNaranja(texto: 'Ir a mi cuenta', alPulsar: alIniciarSesion)
+          else ...[
+            if (ancho >= 600) ...[
+              _BotonBlanco(
+                texto: 'Iniciar sesión',
+                alPulsar: alIniciarSesion,
+                borde: true,
+              ),
+              const SizedBox(width: 12),
+            ],
+            _BotonNaranja(texto: 'Registrarse', alPulsar: alRegistrarse),
           ],
-          _BotonNaranja(texto: 'Registrarse', alPulsar: alRegistrarse),
         ],
       ),
     );
@@ -427,11 +454,13 @@ class _Portada extends StatelessWidget {
     required this.ancho,
     required this.alRegistrarse,
     required this.alIniciarSesion,
+    this.conSesion = false,
   });
 
   final double ancho;
   final VoidCallback alRegistrarse;
   final VoidCallback alIniciarSesion;
+  final bool conSesion;
 
   @override
   Widget build(BuildContext context) {
@@ -444,7 +473,7 @@ class _Portada extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        // Degradado azul oscuro para que el texto blanco se lea sobre la foto.
+        // Degradado verde Samán para que el texto blanco se lea sobre la foto.
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -452,9 +481,9 @@ class _Portada extends StatelessWidget {
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
-                  const Color(0xFF0F172A).withValues(alpha: 0.88),
-                  const Color(0xFF0F172A).withValues(alpha: 0.55),
-                  const Color(0xFF0F172A).withValues(alpha: 0.25),
+                  ColoresSaman.azulNoche.withValues(alpha: 0.88),
+                  ColoresSaman.azulNoche.withValues(alpha: 0.55),
+                  ColoresSaman.azulNoche.withValues(alpha: 0.25),
                 ],
               ),
             ),
@@ -543,16 +572,24 @@ class _Portada extends StatelessWidget {
           spacing: 14,
           runSpacing: 14,
           children: [
-            _BotonNaranja(
-              texto: 'Crear cuenta de estudiante',
-              alPulsar: alRegistrarse,
-              grande: true,
-            ),
-            _BotonBlanco(
-              texto: 'Iniciar sesión',
-              alPulsar: alIniciarSesion,
-              grande: true,
-            ),
+            if (conSesion)
+              _BotonNaranja(
+                texto: 'Ir a mi cuenta',
+                alPulsar: alIniciarSesion,
+                grande: true,
+              )
+            else ...[
+              _BotonNaranja(
+                texto: 'Crear cuenta de estudiante',
+                alPulsar: alRegistrarse,
+                grande: true,
+              ),
+              _BotonBlanco(
+                texto: 'Iniciar sesión',
+                alPulsar: alIniciarSesion,
+                grande: true,
+              ),
+            ],
           ],
         ),
         const SizedBox(height: 40),
@@ -643,7 +680,10 @@ class _IlustracionPortada extends StatelessWidget {
                   height: 220,
                   padding: const EdgeInsets.all(12),
                   decoration: _decoracionTarjeta(radio: 20),
-                  child: Image.asset('assets/imagenes/logo_saman.jpg'),
+                  child: Image.asset(
+                    'assets/imagenes/logo_saman.jpg',
+                    cacheWidth: 400,
+                  ),
                 ),
               ),
             ),
@@ -1311,10 +1351,15 @@ class _Paso extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _Llamado extends StatelessWidget {
-  const _Llamado({required this.ancho, required this.alRegistrarse});
+  const _Llamado({
+    required this.ancho,
+    required this.alRegistrarse,
+    this.conSesion = false,
+  });
 
   final double ancho;
   final VoidCallback alRegistrarse;
+  final bool conSesion;
 
   @override
   Widget build(BuildContext context) {
@@ -1338,7 +1383,7 @@ class _Llamado extends StatelessWidget {
       ],
     );
     final boton = _BotonBlanco(
-      texto: 'Crear cuenta',
+      texto: conSesion ? 'Ir a mi cuenta' : 'Crear cuenta',
       alPulsar: alRegistrarse,
       grande: true,
     );

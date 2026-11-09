@@ -26,10 +26,37 @@ abstract final class TemaSaman {
         bodyColor: ColoresSaman.azulOscuro,
         displayColor: ColoresSaman.azulOscuro,
       ),
-      // La barra superior naranja se mantiene, como en recuperar contraseña.
-      appBarTheme: const AppBarTheme(
-        backgroundColor: ColoresSaman.naranja,
+      // Barra superior azul noche en toda la app, con el título en blanco.
+      appBarTheme: AppBarTheme(
+        backgroundColor: ColoresSaman.azulNoche,
         foregroundColor: ColoresSaman.blanco,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: GoogleFonts.plusJakartaSans(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: ColoresSaman.blanco,
+        ),
+      ),
+      // Transición suave entre pantallas en todas las plataformas.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
+          TargetPlatform.windows: ZoomPageTransitionsBuilder(),
+          TargetPlatform.macOS: ZoomPageTransitionsBuilder(),
+          TargetPlatform.linux: ZoomPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: ZoomPageTransitionsBuilder(),
+        },
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        shape: const StadiumBorder(),
+        side: BorderSide.none,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: ColoresSaman.blanco,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

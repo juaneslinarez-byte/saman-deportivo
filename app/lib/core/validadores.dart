@@ -1,4 +1,6 @@
+import '../modelos/modelos.dart';
 import 'formatos.dart';
+import 'horarios.dart';
 
 /// Validadores de los formularios.
 ///
@@ -141,16 +143,21 @@ abstract final class Validadores {
     return null;
   }
 
-  /// Número de la cédula, sin prefijo ni puntos. Venezolana (V): de 6 a 8
-  /// dígitos; extranjera (E): de 6 a 9. No acepta números de relleno como
+  /// Número de la cédula, sin prefijo ni puntos. Venezolana (V): 7 u 8
+  /// dígitos; extranjera (E): de 7 a 9. No acepta números de relleno como
   /// 11111111 o 12345678.
   static String? cedula(String? valor, {String prefijo = 'V'}) {
     final numero = valor?.trim() ?? '';
     if (numero.isEmpty) return 'Escribe tu número de cédula';
     if (!RegExp(r'^\d+$').hasMatch(numero)) return 'Usa solo números';
+    // Las cédulas venezolanas tienen 7 dígitos (las más antiguas) u 8 (las
+    // de quienes nacieron desde los años 90, como los estudiantes de hoy).
+    // Las de extranjeros pueden llegar a 9.
     final maximo = prefijo == 'E' ? 9 : 8;
-    if (numero.length < 6 || numero.length > maximo) {
-      return 'Debe tener entre 6 y $maximo dígitos';
+    if (numero.length < 7 || numero.length > maximo) {
+      return prefijo == 'E'
+          ? 'Debe tener entre 7 y 9 dígitos'
+          : 'Debe tener 7 u 8 dígitos';
     }
     if (numero.startsWith('0')) return 'No puede empezar por 0';
     if (_esRelleno(numero)) return 'Escribe tu cédula real';
@@ -188,6 +195,24 @@ abstract final class Validadores {
     return null;
   }
 
+  /// Fecha de una clase al tomar la asistencia (RF-ENT-03): tiene que caer
+  /// el mismo día de la semana de la sesión y no puede estar en el futuro.
+  static String? fechaDeClase(DateTime? fecha, DiaSemana dia, {DateTime? hoy}) {
+    if (fecha == null) return 'Selecciona la fecha de la clase';
+    final ahora = hoy ?? DateTime.now();
+    final hoySinHora = DateTime(ahora.year, ahora.month, ahora.day);
+    if (DateTime(fecha.year, fecha.month, fecha.day).isAfter(hoySinHora)) {
+      return 'No puedes tomar la asistencia de una fecha futura';
+    }
+    if (Horarios.diaDe(fecha) != dia) {
+      final nombre = Horarios.nombreDia(dia);
+      // «los lunes», pero «los sábados» y «los domingos».
+      final plural = nombre.endsWith('o') ? '${nombre}s' : nombre;
+      return 'Esta clase es los $plural: elige una fecha que caiga $nombre';
+    }
+    return null;
+  }
+
   /// Textos como el cargo: de 3 a 50 caracteres, con letras y sin números.
   static String? textoDescriptivo(String? valor, {String campo = 'este dato'}) {
     final texto = Formatos.espacios(valor ?? '');
@@ -199,6 +224,30 @@ abstract final class Validadores {
     }
     if (!_vocal.hasMatch(texto) || _tresIguales.hasMatch(texto)) {
       return 'Escribe $campo real';
+    }
+    return null;
+  }
+
+  /// Comentario de una reseña: de 10 a 300 caracteres, con al menos dos
+  /// palabras reales, mayoría de letras y sin relleno como «aaaaa».
+  static String? comentarioResena(String? valor) {
+    final texto = valor?.trim() ?? '';
+    if (texto.isEmpty) return 'Escribe tu comentario';
+    if (texto.length < 10) return 'Escribe al menos 10 caracteres';
+    if (texto.length > 300) return 'Máximo 300 caracteres';
+    final palabras = RegExp(r'[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]{2,}')
+        .allMatches(texto)
+        .map((m) => m.group(0)!)
+        .toList();
+    final conVocal = palabras.where((p) => _vocal.hasMatch(p)).length;
+    if (conVocal < 2) return 'Escribe un comentario con palabras reales';
+    final letras = RegExp(r'[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]').allMatches(texto).length;
+    final sinEspacios = texto.replaceAll(RegExp(r'\s'), '').length;
+    if (letras * 2 < sinEspacios) {
+      return 'Usa principalmente letras, no números ni símbolos';
+    }
+    if (RegExp(r'(.)\1{3,}').hasMatch(texto)) {
+      return 'Revisa las letras repetidas';
     }
     return null;
   }

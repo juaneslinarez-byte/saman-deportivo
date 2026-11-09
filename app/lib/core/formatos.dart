@@ -53,6 +53,12 @@ abstract final class Formatos {
 
   static String correo(String texto) => texto.trim().toLowerCase();
 
+  /// «02/11/2026».
+  static String fecha(DateTime fecha) =>
+      '${fecha.day.toString().padLeft(2, '0')}/'
+      '${fecha.month.toString().padLeft(2, '0')}/'
+      '${fecha.year}';
+
   /// Cédula guardada siempre igual: «V-28123456».
   static String cedula(String prefijo, String numero) =>
       '$prefijo-${numero.trim()}';
@@ -80,6 +86,14 @@ abstract final class Entradas {
     FilteringTextInputFormatter.allow(RegExp("[${Formatos.letras}' .,()-]")),
     const _EspaciosSimples(),
     LengthLimitingTextInputFormatter(50),
+  ];
+
+  /// Buscador del catálogo: letras, números y guion (los códigos como
+  /// «FUT-01»).
+  static final List<TextInputFormatter> busqueda = [
+    FilteringTextInputFormatter.allow(RegExp('[${Formatos.letras}0-9 -]')),
+    const _EspaciosSimples(),
+    LengthLimitingTextInputFormatter(40),
   ];
 
   static final List<TextInputFormatter> correo = [

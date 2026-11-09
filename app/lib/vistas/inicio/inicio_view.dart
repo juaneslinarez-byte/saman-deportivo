@@ -6,6 +6,7 @@ import '../../core/rutas.dart';
 import '../../modelos/modelos.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/perfil_viewmodel.dart';
+import '../comun/disenio.dart';
 
 /// Una entrada del inicio: lleva a la pantalla principal de un módulo.
 class SeccionInicio {
@@ -40,6 +41,12 @@ class InicioView extends StatelessWidget {
       switch (persona) {
         Estudiante() => const [
           SeccionInicio(
+            titulo: 'Mi resumen',
+            descripcion: 'Próxima clase, asistencia y pendientes',
+            icono: Icons.insights_outlined,
+            ruta: Rutas.panelEstudiante,
+          ),
+          SeccionInicio(
             titulo: 'Catálogo de disciplinas',
             descripcion: 'Busca por cupos, días y horarios',
             icono: Icons.sports_soccer_outlined,
@@ -51,9 +58,21 @@ class InicioView extends StatelessWidget {
             icono: Icons.event_available_outlined,
             ruta: Rutas.misDisciplinas,
           ),
+          SeccionInicio(
+            titulo: 'Mi solvencia',
+            descripcion: 'Paga la cuota y revisa tus pagos',
+            icono: Icons.payments_outlined,
+            ruta: Rutas.solvencia,
+          ),
           _miPerfil,
         ],
         Entrenador() => const [
+          SeccionInicio(
+            titulo: 'Mi resumen',
+            descripcion: 'Inscritos, asistencia y próxima clase',
+            icono: Icons.insights_outlined,
+            ruta: Rutas.panelEntrenador,
+          ),
           SeccionInicio(
             titulo: 'Mis disciplinas',
             descripcion: 'Nómina, asistencia e historial',
@@ -63,6 +82,12 @@ class InicioView extends StatelessWidget {
           _miPerfil,
         ],
         Administrador() => const [
+          SeccionInicio(
+            titulo: 'Panel resumen',
+            descripcion: 'Cifras del club y lo que requiere atención',
+            icono: Icons.insights_outlined,
+            ruta: Rutas.adminPanel,
+          ),
           SeccionInicio(
             titulo: 'Deportes',
             descripcion: 'Alta, entrenadores, sesiones y cupos',
@@ -74,6 +99,12 @@ class InicioView extends StatelessWidget {
             descripcion: 'Habilitar, solvencia y entrenadores',
             icono: Icons.manage_accounts_outlined,
             ruta: Rutas.adminUsuarios,
+          ),
+          SeccionInicio(
+            titulo: 'Pagos de solvencia',
+            descripcion: 'Aprueba o rechaza los pagos en revisión',
+            icono: Icons.request_quote_outlined,
+            ruta: Rutas.adminPagos,
           ),
           _miPerfil,
         ],
@@ -101,15 +132,41 @@ class InicioView extends StatelessWidget {
     return Scaffold(
       backgroundColor: ColoresSaman.fondo,
       appBar: AppBar(
-        title: const Text(
-          'Samán Deportivo',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        title: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/imagenes/logo_saman.jpg',
+                height: 32,
+                width: 32,
+                // Se decodifica al tamaño en que se ve, no a 512 px.
+                cacheWidth: 96,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Flexible(
+              child: Text('Samán Deportivo', overflow: TextOverflow.ellipsis),
+            ),
+          ],
         ),
-        backgroundColor: ColoresSaman.blanco,
-        foregroundColor: ColoresSaman.azulOscuro,
-        elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
+          // Cualquier actor puede volver a la página principal (landing).
+          // En el teléfono queda solo el ícono para no apretar la barra.
+          if (MediaQuery.sizeOf(context).width >= 600)
+            TextButton.icon(
+              style: TextButton.styleFrom(foregroundColor: ColoresSaman.blanco),
+              onPressed: () => Navigator.pushNamed(context, Rutas.bienvenida),
+              icon: const Icon(Icons.home_outlined),
+              label: const Text('Página principal'),
+            )
+          else
+            IconButton(
+              tooltip: 'Página principal',
+              icon: const Icon(Icons.home_outlined),
+              onPressed: () => Navigator.pushNamed(context, Rutas.bienvenida),
+            ),
           IconButton(
             tooltip: 'Cerrar sesión',
             icon: const Icon(Icons.logout),
@@ -142,6 +199,52 @@ class _Contenido extends StatelessWidget {
   final String actor;
   final List<SeccionInicio> secciones;
 
+  static const _dias = [
+    'Lunes',
+    'Martes',
+    'Miércoles',
+    'Jueves',
+    'Viernes',
+    'Sábado',
+    'Domingo',
+  ];
+  static const _meses = [
+    'enero',
+    'febrero',
+    'marzo',
+    'abril',
+    'mayo',
+    'junio',
+    'julio',
+    'agosto',
+    'septiembre',
+    'octubre',
+    'noviembre',
+    'diciembre',
+  ];
+
+  /// «Domingo, 8 de noviembre».
+  static String _hoy() {
+    final ahora = DateTime.now();
+    return '${_dias[ahora.weekday - 1]}, ${ahora.day} de '
+        '${_meses[ahora.month - 1]}';
+  }
+
+  /// Frase de bienvenida de cada actor, debajo del saludo.
+  static String _frase(Persona persona) => switch (persona) {
+    Estudiante() => '¿Qué entrenamos hoy?',
+    Entrenador() => 'Tus grupos te esperan.',
+    Administrador() => 'Así va el club hoy.',
+    _ => 'Bienvenido.',
+  };
+
+  static IconData _iconoActor(Persona persona) => switch (persona) {
+    Estudiante() => Icons.school_outlined,
+    Entrenador() => Icons.sports_outlined,
+    Administrador() => Icons.admin_panel_settings_outlined,
+    _ => Icons.person_outline,
+  };
+
   @override
   Widget build(BuildContext context) {
     // Sin solvencia el estudiante no puede inscribirse (RF-SIS-02): se le
@@ -151,129 +254,135 @@ class _Contenido extends StatelessWidget {
       _ => false,
     };
 
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hola, ${persona.nombre}',
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: ColoresSaman.azulOscuro,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: ColoresSaman.naranja,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  actor,
-                  style: const TextStyle(
-                    color: ColoresSaman.blanco,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          PortadaDegradado(
+            imagen: 'assets/imagenes/portada_pista.jpg',
+            anchoMaximo: 900,
+            espacioInferior: 90,
+            encima: Row(
+              children: [
+                AvatarIniciales(nombre: persona.nombreCompleto, tamano: 48),
+                const SizedBox(width: 12),
+                PildoraClara(texto: actor, icono: _iconoActor(persona)),
+              ],
+            ),
+            titulo: 'Hola, ${persona.nombre}',
+            subtitulo: '${_hoy()} · ${_frase(persona)}',
+          ),
+          // Las tarjetas suben y se montan sobre el borde de la portada.
+          Transform.translate(
+            offset: const Offset(0, -56),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 900),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (sinSolvencia) ...[
+                        const Aparecer(child: _AvisoSolvencia()),
+                        const SizedBox(height: 16),
+                      ],
+                      LayoutBuilder(
+                        builder: (context, restricciones) {
+                          // Tres columnas en pantalla ancha, dos en tableta
+                          // y una en el teléfono.
+                          const espacio = 16.0;
+                          final columnas = restricciones.maxWidth >= 760
+                              ? 3
+                              : restricciones.maxWidth >= 480
+                              ? 2
+                              : 1;
+                          final ancho =
+                              (restricciones.maxWidth -
+                                  espacio * (columnas - 1)) /
+                              columnas;
+                          return Wrap(
+                            spacing: espacio,
+                            runSpacing: espacio,
+                            children: [
+                              for (final (i, seccion) in secciones.indexed)
+                                SizedBox(
+                                  width: ancho,
+                                  child: Aparecer(
+                                    retraso: Aparecer.escalonado(
+                                      i + 1,
+                                      pasoMs: 70,
+                                    ),
+                                    child: _TarjetaSeccion(
+                                      seccion: seccion,
+                                      color:
+                                          ColoresSaman.acentos[i %
+                                              ColoresSaman.acentos.length],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
-              if (sinSolvencia) ...[
-                const SizedBox(height: 20),
-                const _AvisoSolvencia(),
-              ],
-              const SizedBox(height: 24),
-              LayoutBuilder(
-                builder: (context, restricciones) {
-                  // Tres columnas en pantalla ancha, una en el teléfono.
-                  const espacio = 16.0;
-                  final columnas = restricciones.maxWidth >= 640 ? 3 : 1;
-                  final ancho =
-                      (restricciones.maxWidth - espacio * (columnas - 1)) /
-                      columnas;
-                  return Wrap(
-                    spacing: espacio,
-                    runSpacing: espacio,
-                    children: [
-                      for (final seccion in secciones)
-                        SizedBox(
-                          width: ancho,
-                          child: _TarjetaSeccion(seccion: seccion),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
 class _TarjetaSeccion extends StatelessWidget {
-  const _TarjetaSeccion({required this.seccion});
+  const _TarjetaSeccion({required this.seccion, required this.color});
 
   final SeccionInicio seccion;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: ColoresSaman.blanco,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(18),
-        onTap: () => Navigator.pushNamed(context, seccion.ruta),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: ColoresSaman.gris),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return TarjetaInteractiva(
+      alTocar: () => Navigator.pushNamed(context, seccion.ruta),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: ColoresSaman.naranjaSuave,
-                child: Icon(seccion.icono, color: ColoresSaman.naranja),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                seccion.titulo,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: ColoresSaman.azulOscuro,
+              IconoAcento(icono: seccion.icono, color: color),
+              const Spacer(),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                seccion.descripcion,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: ColoresSaman.textoSecundario,
-                ),
+                child: Icon(Icons.arrow_forward, size: 16, color: color),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          Text(
+            seccion.titulo,
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: ColoresSaman.azulOscuro,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            seccion.descripcion,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: ColoresSaman.textoSecundario,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -288,19 +397,45 @@ class _AvisoSolvencia extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: ColoresSaman.naranjaSuave,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            ColoresSaman.ambar.withValues(alpha: 0.95),
+            ColoresSaman.naranja,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: ColoresSaman.naranja.withValues(alpha: 0.3),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.info_outline, color: ColoresSaman.naranja),
-          SizedBox(width: 12),
-          Expanded(
+          const Icon(Icons.info_outline, color: ColoresSaman.blanco),
+          const SizedBox(width: 12),
+          const Expanded(
             child: Text(
-              'Aún no estás solvente. Podrás inscribirte en una disciplina '
-              'cuando el administrador confirme tu pago.',
-              style: TextStyle(color: ColoresSaman.azulOscuro, fontSize: 13),
+              'Aún no estás solvente. Paga la cuota del trimestre y podrás '
+              'inscribirte cuando el administrador confirme tu pago.',
+              style: TextStyle(
+                color: ColoresSaman.blanco,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: ColoresSaman.blanco,
+              foregroundColor: ColoresSaman.naranja,
+              elevation: 0,
+            ),
+            onPressed: () => Navigator.pushNamed(context, Rutas.solvencia),
+            child: const Text('Pagar'),
           ),
         ],
       ),

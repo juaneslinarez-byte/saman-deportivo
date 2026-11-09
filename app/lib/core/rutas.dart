@@ -18,11 +18,40 @@ abstract final class Rutas {
 
   // Entradas de cada módulo desde el inicio. Mientras un módulo no registre
   // su pantalla en main.dart, la ruta muestra «En construcción».
+  /// Resumen del estudiante: próxima clase, asistencia y solvencia.
+  static const String panelEstudiante = '/estudiante/panel';
   static const String catalogo = '/estudiante/catalogo';
   static const String misDisciplinas = '/estudiante/mis-disciplinas';
+
+  /// Detalle de una disciplina del catálogo; recibe el id del deporte.
+  static const String detalleDisciplina = '/estudiante/disciplina';
+
+  /// Confirmar la inscripción en una disciplina; recibe el Deporte elegido.
+  static const String confirmarInscripcion = '/estudiante/inscripcion';
+  static const String inscripcionConfirmada =
+      '/estudiante/inscripcion/confirmada';
+  static const String miAsistencia = '/estudiante/asistencia';
+
+  /// Estado de la solvencia y pago de la cuota del trimestre.
+  static const String solvencia = '/estudiante/solvencia';
   static const String disciplinasEntrenador = '/entrenador';
+
+  /// Resumen del entrenador: inscritos, asistencia y próxima clase.
+  static const String panelEntrenador = '/entrenador/panel';
+
+  /// Nómina, asistencia e historial de una disciplina del entrenador;
+  /// cada una recibe el Deporte elegido.
+  static const String nominaEntrenador = '/entrenador/nomina';
+  static const String asistenciaEntrenador = '/entrenador/asistencia';
+  static const String historialEntrenador = '/entrenador/historial';
+
+  /// Panel resumen del administrador, con las cifras del club.
+  static const String adminPanel = '/admin/panel';
   static const String adminDeportes = '/admin/deportes';
   static const String adminUsuarios = '/admin/usuarios';
+
+  /// Pagos de solvencia que esperan aprobación.
+  static const String adminPagos = '/admin/pagos';
 
   /// Pantalla que se muestra al abrir la aplicación.
   static const String inicial = bienvenida;
