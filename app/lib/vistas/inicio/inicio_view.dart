@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/colores.dart';
 import '../../core/rutas.dart';
 import '../../modelos/modelos.dart';
+import '../../repositorios/pago_repository.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../../viewmodels/perfil_viewmodel.dart';
 import '../comun/disenio.dart';
@@ -295,7 +296,9 @@ class _Contenido extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (sinSolvencia) ...[
-                        const Aparecer(child: _AvisoSolvencia()),
+                        Aparecer(
+                          child: _AvisoSolvencia(idEstudiante: persona.id),
+                        ),
                         const SizedBox(height: 16),
                       ],
                       LayoutBuilder(
@@ -400,11 +403,43 @@ class _TarjetaSeccion extends StatelessWidget {
   }
 }
 
-class _AvisoSolvencia extends StatelessWidget {
-  const _AvisoSolvencia();
+/// Aviso para el estudiante sin solvencia. Si ya pagó y el pago está en
+/// revisión, se lo dice en lugar de pedirle que pague otra vez.
+class _AvisoSolvencia extends StatefulWidget {
+  const _AvisoSolvencia({required this.idEstudiante});
+
+  final String idEstudiante;
+
+  @override
+  State<_AvisoSolvencia> createState() => _AvisoSolvenciaState();
+}
+
+class _AvisoSolvenciaState extends State<_AvisoSolvencia> {
+  /// Pagos del estudiante; nulo sin repositorio (pruebas).
+  Stream<List<Pago>>? _pagos;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _pagos ??= context.read<PagoRepository?>()?.observarPorEstudiante(
+      widget.idEstudiante,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder<List<Pago>>(
+      stream: _pagos,
+      builder: (context, snapshot) {
+        final enRevision = (snapshot.data ?? const <Pago>[]).any(
+          (p) => p.estado == EstadoPago.pendiente,
+        );
+        return _contenido(context, enRevision);
+      },
+    );
+  }
+
+  Widget _contenido(BuildContext context, bool enRevision) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -426,13 +461,20 @@ class _AvisoSolvencia extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, color: ColoresSaman.blanco),
+          Icon(
+            enRevision ? Icons.hourglass_top_outlined : Icons.info_outline,
+            color: ColoresSaman.blanco,
+          ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Aún no estás solvente. Paga la cuota del trimestre y podrás '
-              'inscribirte cuando el administrador confirme tu pago.',
-              style: TextStyle(
+              enRevision
+                  ? 'Tu pago de solvencia está en revisión. Podrás '
+                        'inscribirte cuando el administrador lo confirme.'
+                  : 'Aún no estás solvente. Paga la cuota del trimestre y '
+                        'podrás inscribirte cuando el administrador confirme '
+                        'tu pago.',
+              style: const TextStyle(
                 color: ColoresSaman.blanco,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -447,7 +489,7 @@ class _AvisoSolvencia extends StatelessWidget {
               elevation: 0,
             ),
             onPressed: () => Navigator.pushNamed(context, Rutas.solvencia),
-            child: const Text('Pagar'),
+            child: Text(enRevision ? 'Ver' : 'Pagar'),
           ),
         ],
       ),
