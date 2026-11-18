@@ -114,8 +114,9 @@ service cloud.firestore {
     // Catálogo: deportes/{idDeporte} y sesiones/{idSesion}
     // ---------------------------------------------------------------
     match /deportes/{idDeporte} {
-      // Lo lee cualquier usuario con sesión (RF-EST-02).
-      allow read: if conSesion();
+      // Lo lee cualquier usuario con sesión (RF-EST-02). Las disciplinas
+      // publicadas también las ve el visitante en la página de bienvenida.
+      allow read: if conSesion() || resource.data.visible == true;
 
       // Solo el administrador crea, edita y elimina deportes, asigna
       // entrenadores y fija los cupos (RF-ADM-01 a RF-ADM-03).
