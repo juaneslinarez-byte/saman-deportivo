@@ -515,7 +515,7 @@ class _Portada extends StatelessWidget {
               Expanded(child: _textoPortada(ancho)),
               if (conIlustracion) ...[
                 const SizedBox(width: 48),
-                const _IlustracionPortada(),
+                _IlustracionPortada(deportes: deportes),
               ],
             ],
           ),
@@ -693,7 +693,10 @@ class _Cifra extends StatelessWidget {
 
 /// Aro naranja con el logo y las tarjetas flotantes de la portada.
 class _IlustracionPortada extends StatelessWidget {
-  const _IlustracionPortada();
+  const _IlustracionPortada({this.deportes});
+
+  /// Disciplinas publicadas: la tarjeta flotante muestra una real.
+  final Stream<List<Deporte>>? deportes;
 
   @override
   Widget build(BuildContext context) {
@@ -741,50 +744,70 @@ class _IlustracionPortada extends StatelessWidget {
               ),
             ),
           ),
-          // Disciplina con su barra de cupos.
+          // Disciplina real con su barra de cupos (la que tiene más cupos).
           Positioned(
             left: 0,
             top: 20,
-            child: Container(
-              width: 230,
-              padding: const EdgeInsets.all(14),
-              decoration: _decoracionTarjeta(radio: 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Fútbol Campo Masculino',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+            child: StreamBuilder<List<Deporte>>(
+              stream: deportes,
+              builder: (context, snapshot) {
+                final lista = snapshot.data;
+                if (lista == null || lista.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                final d = _destacadas(lista).first;
+                return Container(
+                  width: 230,
+                  padding: const EdgeInsets.all(14),
+                  decoration: _decoracionTarjeta(radio: 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        d.nombre,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        d.lugar,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: ColoresSaman.textoSecundario,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: d.cupoMaximo == 0
+                              ? 0
+                              : d.cuposDisponibles / d.cupoMaximo,
+                          minHeight: 5,
+                          color: ColoresSaman.verde,
+                          backgroundColor: ColoresSaman.gris,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${d.cuposDisponibles} / ${d.cupoMaximo} cupos '
+                        'disponibles',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: ColoresSaman.verde,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Lun y Mié · 4:00 PM',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: ColoresSaman.textoSecundario,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: const LinearProgressIndicator(
-                      value: 18 / 25,
-                      minHeight: 5,
-                      color: ColoresSaman.verde,
-                      backgroundColor: ColoresSaman.gris,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '18 / 25 cupos disponibles',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: ColoresSaman.verde,
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
           // Asistencia.
@@ -806,9 +829,9 @@ class _IlustracionPortada extends StatelessWidget {
                   ),
                   SizedBox(width: 8),
                   Text(
-                    '8 de 10',
+                    'en tiempo real',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: ColoresSaman.naranja,
                     ),
@@ -852,7 +875,7 @@ class _IlustracionPortada extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Baloncesto Mixto',
+                        'Al instante y con tu cupo reservado',
                         style: TextStyle(
                           fontSize: 10,
                           color: ColoresSaman.textoSecundario,
