@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'core/rutas.dart';
@@ -100,6 +101,14 @@ class MyApp extends StatelessWidget {
         title: 'Samán Deportivo',
         debugShowCheckedModeBanner: false,
         theme: TemaSaman.claro,
+        // Calendarios, relojes y textos del sistema en español.
+        locale: const Locale('es'),
+        supportedLocales: const [Locale('es')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         initialRoute: Rutas.inicial,
         routes: {
           Rutas.bienvenida: (context) => const BienvenidaView(),
