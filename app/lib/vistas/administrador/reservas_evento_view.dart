@@ -300,27 +300,29 @@ class _TarjetaReserva extends StatelessWidget {
                 ),
               )
             else
-              Wrap(
-                alignment: WrapAlignment.end,
-                spacing: 8,
-                children: [
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: ColoresSaman.rojo,
-                      side: const BorderSide(color: ColoresSaman.rojo),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Wrap(
+                  spacing: 8,
+                  children: [
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: ColoresSaman.rojo,
+                        side: const BorderSide(color: ColoresSaman.rojo),
+                      ),
+                      onPressed: () => _revisar(context, aprobar: false),
+                      child: const Text('Rechazar'),
                     ),
-                    onPressed: () => _revisar(context, aprobar: false),
-                    child: const Text('Rechazar'),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColoresSaman.verde,
-                      foregroundColor: ColoresSaman.blanco,
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: ColoresSaman.verde,
+                        foregroundColor: ColoresSaman.blanco,
+                      ),
+                      onPressed: () => _revisar(context, aprobar: true),
+                      child: const Text('Aprobar'),
                     ),
-                    onPressed: () => _revisar(context, aprobar: true),
-                    child: const Text('Aprobar'),
-                  ),
-                ],
+                  ],
+                ),
               ),
           ],
         ],

@@ -110,43 +110,70 @@ class MyApp extends StatelessWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         initialRoute: Rutas.inicial,
-        routes: {
-          Rutas.bienvenida: (context) => const BienvenidaView(),
-          Rutas.login: (context) => const LoginView(),
-          Rutas.registro: (context) => const RegistroView(),
-          Rutas.recuperar: (context) => const RecuperarPasswordView(),
-          Rutas.perfil: (context) => const PerfilView(),
-          Rutas.editarPerfil: (context) => const EditarPerfilView(),
-          Rutas.inicio: (context) => const InicioView(),
-          Rutas.catalogo: (context) => const CatalogoView(),
-          Rutas.detalleDisciplina: (context) => const DetalleDisciplinaView(),
-          Rutas.confirmarInscripcion: (context) =>
-              const ConfirmarInscripcionView(),
-          Rutas.inscripcionConfirmada: (context) =>
-              const InscripcionConfirmadaView(),
-          Rutas.misDisciplinas: (context) => const MisDisciplinasView(),
-          Rutas.miAsistencia: (context) => const MiAsistenciaView(),
-          Rutas.solvencia: (context) => const SolvenciaView(),
-          Rutas.eventos: (context) => const EventosView(),
-          Rutas.panelEstudiante: (context) => const PanelEstudianteView(),
-          Rutas.disciplinasEntrenador: (context) =>
-              const DisciplinasEntrenadorView(),
-          Rutas.nominaEntrenador: (context) => const NominaView(),
-          Rutas.panelEntrenador: (context) => const PanelEntrenadorView(),
-          Rutas.asistenciaEntrenador: (context) => const TomarAsistenciaView(),
-          Rutas.adminDeportes: (context) => const AdminDeportesView(),
-          Rutas.adminUsuarios: (context) => AdminUsuariosView(
-            idAdminActual: context.read<AuthViewModel>().idUsuarioActual ?? '',
-          ),
-          Rutas.adminPagos: (context) => const PagosAdminView(),
-          Rutas.adminEventos: (context) => const AdminEventosView(),
-          Rutas.adminPanel: (context) => const PanelAdminView(),
-          Rutas.historialEntrenador: (context) =>
-              const HistorialAsistenciaView(),
-        },
+        routes: _rutas,
+        // Al abrir (o recargar) la app directo en una pantalla interna, el
+        // inicio queda debajo para que siempre haya cómo volver.
+        onGenerateInitialRoutes: _rutasIniciales,
         // Las secciones cuyo módulo todavía no registró su pantalla.
         onUnknownRoute: EnConstruccionView.ruta,
       ),
     );
   }
+}
+
+/// Pantallas de la app por nombre de ruta.
+final Map<String, WidgetBuilder> _rutas = {
+  Rutas.bienvenida: (context) => const BienvenidaView(),
+  Rutas.login: (context) => const LoginView(),
+  Rutas.registro: (context) => const RegistroView(),
+  Rutas.recuperar: (context) => const RecuperarPasswordView(),
+  Rutas.perfil: (context) => const PerfilView(),
+  Rutas.editarPerfil: (context) => const EditarPerfilView(),
+  Rutas.inicio: (context) => const InicioView(),
+  Rutas.catalogo: (context) => const CatalogoView(),
+  Rutas.detalleDisciplina: (context) => const DetalleDisciplinaView(),
+  Rutas.confirmarInscripcion: (context) => const ConfirmarInscripcionView(),
+  Rutas.inscripcionConfirmada: (context) => const InscripcionConfirmadaView(),
+  Rutas.misDisciplinas: (context) => const MisDisciplinasView(),
+  Rutas.miAsistencia: (context) => const MiAsistenciaView(),
+  Rutas.solvencia: (context) => const SolvenciaView(),
+  Rutas.eventos: (context) => const EventosView(),
+  Rutas.panelEstudiante: (context) => const PanelEstudianteView(),
+  Rutas.disciplinasEntrenador: (context) => const DisciplinasEntrenadorView(),
+  Rutas.nominaEntrenador: (context) => const NominaView(),
+  Rutas.panelEntrenador: (context) => const PanelEntrenadorView(),
+  Rutas.asistenciaEntrenador: (context) => const TomarAsistenciaView(),
+  Rutas.adminDeportes: (context) => const AdminDeportesView(),
+  Rutas.adminUsuarios: (context) => AdminUsuariosView(
+    idAdminActual: context.read<AuthViewModel>().idUsuarioActual ?? '',
+  ),
+  Rutas.adminPagos: (context) => const PagosAdminView(),
+  Rutas.adminEventos: (context) => const AdminEventosView(),
+  Rutas.adminPanel: (context) => const PanelAdminView(),
+  Rutas.historialEntrenador: (context) => const HistorialAsistenciaView(),
+};
+
+/// Rutas que se abren solas, sin el inicio debajo.
+const _rutasDeEntrada = {
+  '/',
+  Rutas.bienvenida,
+  Rutas.login,
+  Rutas.registro,
+  Rutas.recuperar,
+  Rutas.inicio,
+};
+
+List<Route<dynamic>> _rutasIniciales(String nombre) {
+  Route<dynamic> crear(String ruta) {
+    final constructor = _rutas[ruta];
+    final ajustes = RouteSettings(name: ruta);
+    if (constructor == null) return EnConstruccionView.ruta(ajustes);
+    return MaterialPageRoute<void>(settings: ajustes, builder: constructor);
+  }
+
+  if (nombre == '/') return [crear(Rutas.inicial)];
+  return [
+    if (!_rutasDeEntrada.contains(nombre)) crear(Rutas.inicio),
+    crear(nombre),
+  ];
 }

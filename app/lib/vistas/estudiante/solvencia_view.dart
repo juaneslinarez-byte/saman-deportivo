@@ -193,11 +193,16 @@ class _TarjetaPago extends StatelessWidget {
   final SolvenciaViewModel vm;
 
   /// PayPal ya cobró: se registra el pago con el id de la operación.
+  ///
+  /// Al registrarse, esta tarjeta desaparece (el pago queda en revisión),
+  /// así que los avisos se muestran con el navegador de la pantalla.
   Future<void> _registrar(BuildContext context, String idPayPal) async {
+    final navegador = Navigator.of(context);
+    final avisos = ScaffoldMessenger.of(context);
     final pago = await vm.pagar(perfil, referencia: idPayPal);
-    if (!context.mounted) return;
+    if (!navegador.mounted) return;
     if (pago == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      avisos.showSnackBar(
         SnackBar(
           content: Text(
             '${vm.error ?? 'No se pudo registrar el pago.'} Guarda tu '
@@ -211,7 +216,7 @@ class _TarjetaPago extends StatelessWidget {
       return;
     }
     await showDialog<void>(
-      context: context,
+      context: navegador.context,
       builder: (ctx) => AlertDialog(
         icon: const Icon(
           Icons.check_circle_outline,
