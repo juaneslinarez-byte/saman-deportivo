@@ -434,7 +434,8 @@ class _Titulo extends StatelessWidget {
 }
 
 /// Lleva a confirmar la inscripción, que es de otro módulo. Sin cupos queda
-/// desactivado, y mientras se abre la pantalla no admite otro toque.
+/// desactivado, y mientras se abre la pantalla no admite otro toque. Si el
+/// estudiante ya está inscrito, en su lugar lo lleva a «Mis disciplinas».
 class _BotonInscribirse extends StatefulWidget {
   const _BotonInscribirse({required this.deporte});
 
@@ -446,6 +447,20 @@ class _BotonInscribirse extends StatefulWidget {
 
 class _BotonInscribirseState extends State<_BotonInscribirse> {
   bool _abriendo = false;
+
+  /// Inscripciones del estudiante con sesión; nulo para los demás actores.
+  Stream<List<Inscripcion>>? _mias;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final perfil = context.read<PerfilViewModel>().perfil;
+    if (_mias == null && perfil is Estudiante) {
+      _mias = context.read<InscripcionRepository>().observarPorEstudiante(
+        perfil.id,
+      );
+    }
+  }
 
   Future<void> _inscribirse() async {
     if (_abriendo) return;
@@ -460,6 +475,57 @@ class _BotonInscribirseState extends State<_BotonInscribirse> {
 
   @override
   Widget build(BuildContext context) {
+    return StreamBuilder<List<Inscripcion>>(
+      stream: _mias,
+      builder: (context, snapshot) {
+        final inscrito = (snapshot.data ?? const <Inscripcion>[]).any(
+          (i) => i.idDeporte == widget.deporte.id && i.estaActiva,
+        );
+        return inscrito ? _yaInscrito(context) : _botonInscribirse();
+      },
+    );
+  }
+
+  Widget _yaInscrito(BuildContext context) {
+    return Column(
+      children: [
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle, color: ColoresSaman.verde, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'Ya estás inscrito en esta disciplina',
+              style: TextStyle(
+                color: ColoresSaman.verde,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: ColoresSaman.naranja,
+              side: const BorderSide(color: ColoresSaman.naranja),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: const StadiumBorder(),
+            ),
+            onPressed: () => Navigator.pushNamed(context, Rutas.misDisciplinas),
+            child: const Text(
+              'Ver mis disciplinas',
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _botonInscribirse() {
     final hayCupo = widget.deporte.hayCupo;
 
     return SizedBox(
