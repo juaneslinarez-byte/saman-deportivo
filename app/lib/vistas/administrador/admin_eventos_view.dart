@@ -10,6 +10,7 @@ import '../../viewmodels/admin_eventos_viewmodel.dart';
 import '../comun/campos_formulario.dart';
 import '../comun/disenio.dart';
 import 'evento_form_view.dart';
+import 'reservas_evento_view.dart';
 
 /// «Eventos» del administrador: publica, edita, cancela o elimina los
 /// eventos del club que los estudiantes reservan.
@@ -22,6 +23,7 @@ class AdminEventosView extends StatelessWidget {
       create: (context) => AdminEventosViewModel(
         eventoRepository: context.read<EventoRepository>(),
         deporteRepository: context.read<DeporteRepository>(),
+        reservaRepository: context.read<ReservaRepository>(),
       )..cargar(),
       child: const _Pantalla(),
     );
@@ -37,6 +39,20 @@ void abrirFormularioEvento(BuildContext context, [Evento? evento]) {
       builder: (_) => ChangeNotifierProvider.value(
         value: vm,
         child: EventoFormView(evento: evento),
+      ),
+    ),
+  );
+}
+
+/// Abre las reservas del evento para aprobarlas o rechazarlas.
+void abrirReservasEvento(BuildContext context, Evento evento) {
+  final vm = context.read<AdminEventosViewModel>();
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (_) => ReservasEventoView(
+        evento: evento,
+        reservaRepository: vm.reservaRepository,
       ),
     ),
   );
@@ -120,6 +136,37 @@ class _Lista extends StatelessWidget {
               ),
           ],
         ),
+        if (vm.totalEnRevision > 0) ...[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: ColoresSaman.naranjaSuave,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.pending_actions_outlined,
+                  color: ColoresSaman.naranja,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    vm.totalEnRevision == 1
+                        ? '1 reserva espera la revisión del pago.'
+                        : '${vm.totalEnRevision} reservas esperan la '
+                              'revisión del pago.',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: ColoresSaman.azulOscuro,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 16),
         if (eventos.isEmpty)
           _Vacio(
@@ -197,7 +244,7 @@ class _TarjetaEvento extends StatelessWidget {
       opacity: atenuado ? 0.6 : 1,
       child: TarjetaInteractiva(
         relleno: const EdgeInsets.all(18),
-        alTocar: atenuado ? null : () => abrirFormularioEvento(context, evento),
+        alTocar: () => abrirReservasEvento(context, evento),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -214,8 +261,6 @@ class _TarjetaEvento extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Insignia(texto: estado, color: color),
                 if (vm.enProceso(evento))
                   const Padding(
                     padding: EdgeInsets.all(12),
@@ -233,12 +278,17 @@ class _TarjetaEvento extends StatelessWidget {
                       color: ColoresSaman.textoSecundario,
                     ),
                     onSelected: (accion) => switch (accion) {
+                      'reservas' => abrirReservasEvento(context, evento),
                       'editar' => abrirFormularioEvento(context, evento),
                       'cancelar' => _cancelar(context),
                       'eliminar' => _eliminar(context),
                       _ => null,
                     },
                     itemBuilder: (_) => [
+                      const PopupMenuItem(
+                        value: 'reservas',
+                        child: Text('Ver reservas'),
+                      ),
                       if (!atenuado)
                         const PopupMenuItem(
                           value: 'editar',
@@ -258,7 +308,20 @@ class _TarjetaEvento extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                Insignia(texto: estado, color: color),
+                if (vm.enRevisionDe(evento) > 0)
+                  Insignia(
+                    texto: '${vm.enRevisionDe(evento)} por revisar',
+                    color: ColoresSaman.naranja,
+                    icono: Icons.pending_actions_outlined,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
             Wrap(
               spacing: 16,
               runSpacing: 6,
