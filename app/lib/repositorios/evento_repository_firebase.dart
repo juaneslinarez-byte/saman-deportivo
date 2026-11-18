@@ -73,34 +73,55 @@ class EventoRepositoryFirebase implements EventoRepository {
     });
   }
 
+  /// Cancela el evento y, en el mismo lote, sus reservas vigentes. Los
+  /// cupos vuelven al total porque ya nadie ocupa lugar.
   @override
   Future<void> cancelar(Evento evento) async {
     final ref = _eventos.doc(evento.id);
-    await _db.runTransaction((transaccion) async {
-      final doc = await transaccion.get(ref);
-      final datos = doc.data();
-      if (datos == null) throw Exception('El evento ya no existe.');
-      if (datos['estado'] == EstadoEvento.cancelado.name) {
-        throw Exception('El evento ya estaba cancelado.');
+    final doc = await ref.get();
+    final datos = doc.data();
+    if (datos == null) throw Exception('El evento ya no existe.');
+    final actual = Evento.fromMap(doc.id, datos);
+    if (actual.estaCancelado) throw Exception('El evento ya estaba cancelado.');
+
+    final reservas = await _reservasDe(evento.id);
+    final lote = _db.batch();
+    for (final reserva in reservas.docs) {
+      final estado = reserva.data()['estado'];
+      if (estado == EstadoReserva.enRevision.name ||
+          estado == EstadoReserva.aprobada.name) {
+        lote.update(reserva.reference, {
+          'estado': EstadoReserva.cancelada.name,
+        });
       }
-      transaccion.update(ref, {'estado': EstadoEvento.cancelado.name});
+    }
+    lote.update(ref, {
+      'estado': EstadoEvento.cancelado.name,
+      'cuposDisponibles': actual.cupo,
     });
+    await lote.commit();
   }
 
   @override
   Future<void> eliminar(Evento evento) async {
-    final ref = _eventos.doc(evento.id);
-    await _db.runTransaction((transaccion) async {
-      final doc = await transaccion.get(ref);
-      final datos = doc.data();
-      if (datos == null) return;
-      if (Evento.fromMap(doc.id, datos).reservados > 0) {
-        throw Exception(
-          'El evento tiene reservas: cancélalo en lugar de eliminarlo.',
-        );
-      }
-      transaccion.delete(ref);
-    });
+    final reservas = await _reservasDe(evento.id, limite: 1);
+    if (reservas.docs.isNotEmpty) {
+      throw Exception(
+        'El evento tiene reservas: cancélalo en lugar de eliminarlo.',
+      );
+    }
+    await _eventos.doc(evento.id).delete();
+  }
+
+  Future<QuerySnapshot<Map<String, dynamic>>> _reservasDe(
+    String idEvento, {
+    int? limite,
+  }) {
+    Query<Map<String, dynamic>> consulta = _db
+        .collection('reservas')
+        .where('idEvento', isEqualTo: idEvento);
+    if (limite != null) consulta = consulta.limit(limite);
+    return consulta.get();
   }
 
   List<Evento> _ordenados(QuerySnapshot<Map<String, dynamic>> consulta) {

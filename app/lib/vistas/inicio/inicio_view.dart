@@ -64,6 +64,12 @@ class InicioView extends StatelessWidget {
             icono: Icons.payments_outlined,
             ruta: Rutas.solvencia,
           ),
+          SeccionInicio(
+            titulo: 'Eventos',
+            descripcion: 'Torneos y actividades: reserva tu lugar',
+            icono: Icons.celebration_outlined,
+            ruta: Rutas.eventos,
+          ),
           _miPerfil,
         ],
         Entrenador() => const [

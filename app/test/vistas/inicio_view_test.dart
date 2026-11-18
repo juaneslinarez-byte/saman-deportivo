@@ -146,6 +146,7 @@ void main() {
       Rutas.catalogo,
       Rutas.misDisciplinas,
       Rutas.solvencia,
+      Rutas.eventos,
       Rutas.perfil,
     ]);
     expect(rutas(_entrenadora), [

@@ -11,6 +11,7 @@ import 'repositorios/deporte_repository_firebase.dart';
 import 'repositorios/inscripcion_repository_firebase.dart';
 import 'repositorios/evento_repository_firebase.dart';
 import 'repositorios/pago_repository_firebase.dart';
+import 'repositorios/reserva_repository_firebase.dart';
 import 'repositorios/repositorios.dart';
 import 'repositorios/usuario_repository_firebase.dart';
 import 'viewmodels/auth_viewmodel.dart';
@@ -32,6 +33,7 @@ import 'vistas/entrenador/tomar_asistencia_view.dart';
 import 'vistas/estudiante/catalogo_view.dart';
 import 'vistas/estudiante/confirmar_inscripcion_view.dart';
 import 'vistas/estudiante/detalle_disciplina_view.dart';
+import 'vistas/estudiante/eventos_view.dart';
 import 'vistas/estudiante/inscripcion_confirmada_view.dart';
 import 'vistas/estudiante/mi_asistencia_view.dart';
 import 'vistas/estudiante/mis_disciplinas_view.dart';
@@ -71,6 +73,7 @@ class MyApp extends StatelessWidget {
         ),
         Provider<PagoRepository>(create: (_) => PagoRepositoryFirebase()),
         Provider<EventoRepository>(create: (_) => EventoRepositoryFirebase()),
+        Provider<ReservaRepository>(create: (_) => ReservaRepositoryFirebase()),
         ChangeNotifierProvider<AuthViewModel>(
           create: (context) => AuthViewModel(
             authRepository: context.read<AuthRepository>(),
@@ -115,6 +118,7 @@ class MyApp extends StatelessWidget {
           Rutas.misDisciplinas: (context) => const MisDisciplinasView(),
           Rutas.miAsistencia: (context) => const MiAsistenciaView(),
           Rutas.solvencia: (context) => const SolvenciaView(),
+          Rutas.eventos: (context) => const EventosView(),
           Rutas.panelEstudiante: (context) => const PanelEstudianteView(),
           Rutas.disciplinasEntrenador: (context) =>
               const DisciplinasEntrenadorView(),
