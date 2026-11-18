@@ -3,11 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../../core/colores.dart';
 import '../../core/eventos.dart';
-import '../../core/mensajes.dart';
-import '../../core/pasarela.dart';
 import '../../modelos/modelos.dart';
 import '../../viewmodels/eventos_viewmodel.dart';
 import '../../viewmodels/perfil_viewmodel.dart';
+import '../comun/boton_paypal.dart';
 import 'eventos_view.dart';
 
 /// Detalle de un evento y su reserva: el estudiante elige cuántas personas
@@ -27,26 +26,16 @@ class _EventoDetalleViewState extends State<EventoDetalleView> {
   int _personas = 1;
   bool _pagando = false;
 
-  Future<void> _reservar(Evento evento, Estudiante perfil) async {
-    final vm = context.read<EventosViewModel>();
-    final total = evento.monto * _personas;
-    final gratis = evento.esGratis;
+  /// Evento gratis: se confirma y se reserva sin pago.
+  Future<void> _reservarGratis(Evento evento, Estudiante perfil) async {
     final confirmado = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(
-          gratis ? '¿Confirmar la reserva?' : '¿Estás seguro de pagar?',
-        ),
+        title: const Text('¿Confirmar la reserva?'),
         content: Text(
-          gratis
-              ? 'Reservarás ${FormatoEvento.personas(_personas)} en '
-                    '«${evento.titulo}». Es gratis.\n\nLa reserva quedará en '
-                    'revisión hasta que el administrador la confirme.'
-              : 'Se cobrarán ${FormatoEvento.precio(total)} por '
-                    '${FormatoEvento.personas(_personas)} en «${evento.titulo}», '
-                    'a nombre de ${perfil.nombreCompleto}.\n\nLa reserva '
-                    'quedará en revisión hasta que el administrador confirme '
-                    'el pago.',
+          'Reservarás ${FormatoEvento.personas(_personas)} en '
+          '«${evento.titulo}». Es gratis.\n\nLa reserva quedará en revisión '
+          'hasta que el administrador la confirme.',
         ),
         actions: [
           TextButton(
@@ -59,28 +48,24 @@ class _EventoDetalleViewState extends State<EventoDetalleView> {
               foregroundColor: ColoresSaman.blanco,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              gratis
-                  ? 'Sí, reservar'
-                  : 'Sí, pagar ${FormatoEvento.precio(total)}',
-            ),
+            child: const Text('Sí, reservar'),
           ),
         ],
       ),
     );
     if (confirmado != true || !mounted) return;
+    await _registrar(evento, perfil, '');
+  }
 
+  /// Registra la reserva. [referencia] es el id de la operación de PayPal
+  /// (vacío si el evento es gratis).
+  Future<void> _registrar(
+    Evento evento,
+    Estudiante perfil,
+    String referencia,
+  ) async {
+    final vm = context.read<EventosViewModel>();
     setState(() => _pagando = true);
-    String referencia = '';
-    try {
-      if (!gratis) referencia = await PasarelaSimulada.cobrar(total);
-    } catch (e) {
-      if (mounted) {
-        setState(() => _pagando = false);
-        _aviso(mensajeDeError(e, porDefecto: 'No se pudo procesar el pago.'));
-      }
-      return;
-    }
     final reserva = await vm.reservar(
       evento: evento,
       perfil: perfil,
@@ -90,7 +75,13 @@ class _EventoDetalleViewState extends State<EventoDetalleView> {
     if (!mounted) return;
     setState(() => _pagando = false);
     if (reserva == null) {
-      _aviso(vm.error ?? 'No se pudo registrar la reserva.');
+      final error = vm.error ?? 'No se pudo registrar la reserva.';
+      _aviso(
+        referencia.isEmpty
+            ? error
+            : '$error Guarda tu referencia de PayPal ($referencia) y '
+                  'contacta a la coordinación de deportes.',
+      );
       return;
     }
     await showDialog<void>(
@@ -122,7 +113,11 @@ class _EventoDetalleViewState extends State<EventoDetalleView> {
 
   void _aviso(String texto) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(texto), backgroundColor: ColoresSaman.rojo),
+      SnackBar(
+        content: Text(texto),
+        duration: const Duration(seconds: 8),
+        backgroundColor: ColoresSaman.rojo,
+      ),
     );
   }
 
@@ -270,45 +265,49 @@ class _EventoDetalleViewState extends State<EventoDetalleView> {
                   ),
                   _Fila('Total', FormatoEvento.precio(total), destacado: true),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: ColoresSaman.naranja,
-                        foregroundColor: ColoresSaman.blanco,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: const StadiumBorder(),
+                  if (ocupado)
+                    const SizedBox(
+                      height: 56,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: ColoresSaman.naranja,
+                        ),
                       ),
-                      onPressed: ocupado || perfil is! Estudiante
-                          ? null
-                          : () => _reservar(evento, perfil),
-                      icon: ocupado
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: ColoresSaman.blanco,
-                              ),
-                            )
-                          : Icon(
-                              evento.esGratis
-                                  ? Icons.check_circle_outline
-                                  : Icons.payment,
-                            ),
-                      label: Text(
-                        ocupado
-                            ? 'Procesando…'
-                            : evento.esGratis
-                            ? 'Confirmar reserva'
-                            : 'Pagar con PayPal',
+                    )
+                  else if (perfil is! Estudiante)
+                    const SizedBox.shrink()
+                  else if (evento.esGratis)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: ColoresSaman.naranja,
+                          foregroundColor: ColoresSaman.blanco,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: const StadiumBorder(),
+                        ),
+                        onPressed: () => _reservarGratis(evento, perfil),
+                        icon: const Icon(Icons.check_circle_outline),
+                        label: const Text('Confirmar reserva'),
+                      ),
+                    )
+                  else
+                    BotonPayPal(
+                      monto: total,
+                      descripcion:
+                          '${evento.titulo} · '
+                          '${FormatoEvento.personas(_personas)}',
+                      alAprobar: (id) => _registrar(evento, perfil, id),
+                      alFallar: (_) => _aviso(
+                        'PayPal no pudo procesar el pago. No se hizo ningún '
+                        'cobro.',
                       ),
                     ),
-                  ),
                   if (!evento.esGratis) ...[
                     const SizedBox(height: 8),
                     const Text(
-                      'Modo de prueba: no se hace ningún cobro real.',
+                      'PayPal en modo de prueba (sandbox): usa una cuenta de '
+                      'prueba; no se cobra dinero real.',
                       style: TextStyle(
                         fontSize: 12,
                         color: ColoresSaman.textoSecundario,

@@ -2,8 +2,13 @@ import 'package:saman_deportivo/modelos/modelos.dart';
 
 /// Pagos de solvencia hechos a través de la pasarela de pagos.
 abstract class PagoRepository {
-  /// Procesa el pago con la pasarela y lo registra.
-  Future<Pago> pagar({required Estudiante estudiante, required double monto});
+  /// Registra el pago. [referencia] es el id de la operación que devolvió
+  /// PayPal; si no se pasa, se simula la pasarela y se genera una.
+  Future<Pago> pagar({
+    required Estudiante estudiante,
+    required double monto,
+    String? referencia,
+  });
 
   /// Pagos de un estudiante, para que consulte su estado.
   Stream<List<Pago>> observarPorEstudiante(String idEstudiante);
