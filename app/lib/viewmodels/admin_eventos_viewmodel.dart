@@ -7,6 +7,7 @@ import '../core/mensajes.dart';
 import '../modelos/modelos.dart';
 import '../repositorios/deporte_repository.dart';
 import '../repositorios/evento_repository.dart';
+import '../repositorios/reserva_repository.dart';
 
 enum AdminEventosEstado { cargando, listo, error }
 
@@ -19,15 +20,18 @@ class AdminEventosViewModel extends ChangeNotifier {
   AdminEventosViewModel({
     required this._eventoRepository,
     required this._deporteRepository,
+    required this._reservaRepository,
     DateTime Function()? reloj,
   }) : _reloj = reloj ?? DateTime.now;
 
   final EventoRepository _eventoRepository;
   final DeporteRepository _deporteRepository;
+  final ReservaRepository _reservaRepository;
   final DateTime Function() _reloj;
 
   List<Evento> _eventos = const [];
   List<Deporte> _deportes = const [];
+  List<Reserva> _enRevision = const [];
   AdminEventosEstado _estado = AdminEventosEstado.cargando;
   FiltroEventos _filtro = FiltroEventos.todos;
   String _busqueda = '';
@@ -36,12 +40,22 @@ class AdminEventosViewModel extends ChangeNotifier {
 
   StreamSubscription<List<Evento>>? _suscripcion;
   StreamSubscription<List<Deporte>>? _suscripcionDeportes;
+  StreamSubscription<List<Reserva>>? _suscripcionReservas;
 
   AdminEventosEstado get estado => _estado;
   FiltroEventos get filtro => _filtro;
   bool get guardando => _guardando;
   DateTime get ahora => _reloj();
   bool enProceso(Evento evento) => _enProceso.contains(evento.id);
+
+  /// Reservas de todos los eventos que esperan la revisión del pago.
+  int get totalEnRevision => _enRevision.length;
+
+  int enRevisionDe(Evento evento) =>
+      _enRevision.where((r) => r.idEvento == evento.id).length;
+
+  /// Repositorio de reservas, para la pantalla de reservas de un evento.
+  ReservaRepository get reservaRepository => _reservaRepository;
 
   /// Disciplinas que se pueden relacionar con un evento.
   List<Deporte> get deportes => _deportes;
@@ -108,6 +122,13 @@ class AdminEventosViewModel extends ChangeNotifier {
           _deportes = [...lista]..sort((a, b) => a.nombre.compareTo(b.nombre));
           notifyListeners();
         }, onError: (Object _) {});
+    _suscripcionReservas?.cancel();
+    _suscripcionReservas = _reservaRepository.observarEnRevision().listen((
+      lista,
+    ) {
+      _enRevision = lista;
+      notifyListeners();
+    }, onError: (Object _) {});
   }
 
   void filtrar(FiltroEventos filtro) {
@@ -169,6 +190,7 @@ class AdminEventosViewModel extends ChangeNotifier {
   void dispose() {
     _suscripcion?.cancel();
     _suscripcionDeportes?.cancel();
+    _suscripcionReservas?.cancel();
     super.dispose();
   }
 }
