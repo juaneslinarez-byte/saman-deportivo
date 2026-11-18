@@ -40,6 +40,7 @@ class FakePagoRepository implements PagoRepository {
   Future<Pago> pagar({
     required Estudiante estudiante,
     required double monto,
+    String? referencia,
   }) async {
     _verificarFallo();
     if (pasarelaRechaza) {

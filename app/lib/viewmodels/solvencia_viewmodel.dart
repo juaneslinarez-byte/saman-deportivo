@@ -90,7 +90,9 @@ class SolvenciaViewModel extends ChangeNotifier {
 
   /// Procesa el pago con la pasarela. Devuelve el pago registrado, o null
   /// si no se pudo (el motivo queda en [error]).
-  Future<Pago?> pagar(Persona? perfil) async {
+  ///
+  /// [referencia] es el id de la operación de PayPal; sin ella se simula.
+  Future<Pago?> pagar(Persona? perfil, {String? referencia}) async {
     if (_pagando) return null;
     final motivo = motivoParaNoPagar(perfil);
     if (motivo != null) {
@@ -105,6 +107,7 @@ class SolvenciaViewModel extends ChangeNotifier {
       return await _pagoRepository.pagar(
         estudiante: perfil! as Estudiante,
         monto: Solvencia.monto,
+        referencia: referencia,
       );
     } catch (e) {
       _error = mensajeDeError(

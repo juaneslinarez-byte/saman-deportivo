@@ -22,6 +22,68 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body style="margin: 0; background-color: #F6F4EE;">
+  <!-- Pagos con PayPal (sandbox). La app carga el SDK solo cuando hace
+       falta y pinta el botón dentro de un elemento HTML de Flutter. -->
+  <script>
+    window.samanPayPal = {
+      _carga: null,
+      cargar: function (clientId) {
+        if (window.paypal) return Promise.resolve();
+        if (this._carga) return this._carga;
+        this._carga = new Promise(function (resolver, rechazar) {
+          var s = document.createElement('script');
+          s.src = 'https://www.paypal.com/sdk/js?client-id=' +
+            encodeURIComponent(clientId) +
+            '&currency=USD&intent=capture&components=buttons&locale=es_ES';
+          s.onload = function () { resolver(); };
+          s.onerror = function () {
+            window.samanPayPal._carga = null;
+            rechazar(new Error('No se pudo cargar PayPal'));
+          };
+          document.head.appendChild(s);
+        });
+        return this._carga;
+      },
+      pintar: function (contenedor, monto, descripcion, alAprobar, alCancelar, alFallar) {
+        var intentos = 0;
+        function cuandoEsteEnPagina() {
+          if (!contenedor.isConnected) {
+            if (intentos++ < 100) return requestAnimationFrame(cuandoEsteEnPagina);
+            return alFallar('El botón de PayPal no se pudo mostrar');
+          }
+          contenedor.innerHTML = '';
+          window.paypal.Buttons({
+            fundingSource: window.paypal.FUNDING.PAYPAL,
+            style: { layout: 'horizontal', shape: 'pill', color: 'gold', label: 'pay', height: 45, tagline: false },
+            createOrder: function (data, actions) {
+              return actions.order.create({
+                // No hay nada que enviar: PayPal no pide dirección.
+                application_context: {
+                  brand_name: 'Samán Deportivo',
+                  shipping_preference: 'NO_SHIPPING',
+                  user_action: 'PAY_NOW'
+                },
+                purchase_units: [{
+                  description: descripcion,
+                  amount: { currency_code: 'USD', value: monto }
+                }]
+              });
+            },
+            onApprove: function (data, actions) {
+              return actions.order.capture().then(function (detalle) {
+                var captura = detalle.purchase_units[0].payments.captures[0];
+                alAprobar(captura ? captura.id : detalle.id);
+              });
+            },
+            onCancel: function () { alCancelar(); },
+            onError: function (e) { alFallar(String(e && e.message ? e.message : e)); }
+          }).render(contenedor).catch(function (e) { alFallar(String(e)); });
+        }
+        cuandoEsteEnPagina();
+      }
+    };
+  </script>
+
   <!-- Carga la aplicación Flutter. -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
