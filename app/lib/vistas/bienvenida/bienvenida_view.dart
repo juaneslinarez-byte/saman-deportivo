@@ -2,16 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/colores.dart';
+import '../../core/fotos.dart';
 import '../../core/rutas.dart';
+import '../../modelos/deporte.dart';
+import '../../repositorios/deporte_repository.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 
 /// Página de bienvenida (landing), según la pantalla «Landing» del prototipo
 /// en Figma: barra de navegación, portada, disciplinas, tarjetas por actor,
 /// los tres pasos para inscribirse, un llamado a registrarse y el pie.
 ///
-/// Es una página informativa: las disciplinas que muestra son ejemplos del
-/// prototipo. El catálogo real, con los cupos de Firestore, está después de
-/// iniciar sesión.
+/// Las cifras de la portada y las disciplinas se leen de Firestore (solo las
+/// publicadas), así que la página muestra datos reales aunque el visitante
+/// no haya iniciado sesión. El catálogo completo, con horarios, está después
+/// de iniciar sesión.
 class BienvenidaView extends StatefulWidget {
   const BienvenidaView({super.key});
 
@@ -34,6 +38,15 @@ class _BienvenidaViewState extends State<BienvenidaView> {
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOut,
     );
+  }
+
+  /// Disciplinas publicadas. Es nulo cuando no hay repositorio (pruebas).
+  Stream<List<Deporte>>? _deportes;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _deportes ??= context.read<DeporteRepository?>()?.observarDeportes();
   }
 
   void _iniciarSesion() => Navigator.pushNamed(context, Rutas.login);
@@ -80,11 +93,13 @@ class _BienvenidaViewState extends State<BienvenidaView> {
                         alRegistrarse: alRegistrar,
                         alIniciarSesion: alEntrar,
                         conSesion: conSesion,
+                        deportes: _deportes,
                       ),
                       _SeccionDisciplinas(
                         key: _claveDisciplinas,
                         ancho: ancho,
                         alVerTodas: alEntrar,
+                        deportes: _deportes,
                       ),
                       _SeccionActores(ancho: ancho, alEntrar: alEntrar),
                       _SeccionPasos(key: _claveComoFunciona, ancho: ancho),
@@ -455,7 +470,11 @@ class _Portada extends StatelessWidget {
     required this.alRegistrarse,
     required this.alIniciarSesion,
     this.conSesion = false,
+    this.deportes,
   });
+
+  /// Disciplinas publicadas, para calcular las cifras.
+  final Stream<List<Deporte>>? deportes;
 
   final double ancho;
   final VoidCallback alRegistrarse;
@@ -592,17 +611,51 @@ class _Portada extends StatelessWidget {
             ],
           ],
         ),
-        const SizedBox(height: 40),
-        const Wrap(
-          spacing: 36,
-          runSpacing: 16,
-          children: [
-            _Cifra('9', 'disciplinas'),
-            _Cifra('12', 'entrenadores'),
-            _Cifra('+240', 'estudiantes inscritos'),
-          ],
-        ),
+        _CifrasPortada(deportes),
       ],
+    );
+  }
+}
+
+/// Cifras de la portada calculadas con las disciplinas publicadas. Mientras
+/// cargan, o si no hay conexión, no se muestran (nunca números inventados).
+class _CifrasPortada extends StatelessWidget {
+  const _CifrasPortada(this.deportes);
+
+  final Stream<List<Deporte>>? deportes;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Deporte>>(
+      stream: deportes,
+      builder: (context, snapshot) {
+        final lista = snapshot.data;
+        if (lista == null || lista.isEmpty) return const SizedBox.shrink();
+        final entrenadores = {for (final d in lista) ...d.idsEntrenadores};
+        final inscritos = lista.fold<int>(0, (suma, d) => suma + d.inscritos);
+        return Padding(
+          padding: const EdgeInsets.only(top: 40),
+          child: Wrap(
+            spacing: 36,
+            runSpacing: 16,
+            children: [
+              _Cifra(
+                '${lista.length}',
+                lista.length == 1 ? 'disciplina' : 'disciplinas',
+              ),
+              if (entrenadores.isNotEmpty)
+                _Cifra(
+                  '${entrenadores.length}',
+                  entrenadores.length == 1 ? 'entrenador' : 'entrenadores',
+                ),
+              _Cifra(
+                '$inscritos',
+                inscritos == 1 ? 'inscripción activa' : 'inscripciones activas',
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -821,53 +874,15 @@ class _IlustracionPortada extends StatelessWidget {
 // Disciplinas
 // ---------------------------------------------------------------------------
 
-/// Disciplina de ejemplo de la portada (los datos del prototipo).
-class _Disciplina {
-  const _Disciplina({
-    required this.foto,
-    required this.deporte,
-    required this.nombre,
-    required this.horario,
-    required this.cupos,
-  });
+/// Foto para las disciplinas que no tienen una propia.
+const _fotoGenerica = 'assets/imagenes/portada_pista.jpg';
 
-  final String foto;
-  final String deporte;
-  final String nombre;
-  final String horario;
-  final int cupos;
+/// Hasta cuatro disciplinas publicadas, primero las que tienen más cupos.
+List<Deporte> _destacadas(List<Deporte> deportes) {
+  final ordenadas = [...deportes]
+    ..sort((a, b) => b.cuposDisponibles.compareTo(a.cuposDisponibles));
+  return ordenadas.take(4).toList();
 }
-
-const _disciplinas = [
-  _Disciplina(
-    foto: 'assets/imagenes/futbol.jpg',
-    deporte: 'Fútbol',
-    nombre: 'Fútbol Campo',
-    horario: 'Lun y Mié · 4:00 PM',
-    cupos: 18,
-  ),
-  _Disciplina(
-    foto: 'assets/imagenes/baloncesto.jpg',
-    deporte: 'Baloncesto',
-    nombre: 'Baloncesto',
-    horario: 'Mar y Jue · 2:00 PM',
-    cupos: 5,
-  ),
-  _Disciplina(
-    foto: 'assets/imagenes/tenis.jpg',
-    deporte: 'Tenis',
-    nombre: 'Tenis de Campo',
-    horario: 'Viernes · 9:00 AM',
-    cupos: 0,
-  ),
-  _Disciplina(
-    foto: 'assets/imagenes/voleibol.jpg',
-    deporte: 'Voleibol',
-    nombre: 'Voleibol Mixto',
-    horario: 'Mar y Jue · 6:00 PM',
-    cupos: 18,
-  ),
-];
 
 /// Cantidad de columnas de las cuadrículas según el ancho disponible.
 int _columnas(double ancho, {required int maximo}) {
@@ -887,10 +902,12 @@ class _SeccionDisciplinas extends StatelessWidget {
     super.key,
     required this.ancho,
     required this.alVerTodas,
+    this.deportes,
   });
 
   final double ancho;
   final VoidCallback alVerTodas;
+  final Stream<List<Deporte>>? deportes;
 
   @override
   Widget build(BuildContext context) {
@@ -928,16 +945,32 @@ class _SeccionDisciplinas extends StatelessWidget {
                   ],
                 ),
           const SizedBox(height: 28),
-          Wrap(
-            spacing: 20,
-            runSpacing: 20,
-            children: [
-              for (final disciplina in _disciplinas)
-                SizedBox(
-                  width: anchoTarjeta,
-                  child: _TarjetaDisciplina(disciplina),
-                ),
-            ],
+          StreamBuilder<List<Deporte>>(
+            stream: deportes,
+            builder: (context, snapshot) {
+              final lista = snapshot.data;
+              if (lista == null || lista.isEmpty) {
+                return const Text(
+                  'Inicia sesión para ver todas las disciplinas, sus horarios '
+                  'y los cupos disponibles.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: ColoresSaman.textoSecundario,
+                  ),
+                );
+              }
+              return Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                children: [
+                  for (final deporte in _destacadas(lista))
+                    SizedBox(
+                      width: anchoTarjeta,
+                      child: _TarjetaDisciplina(deporte),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -948,11 +981,12 @@ class _SeccionDisciplinas extends StatelessWidget {
 class _TarjetaDisciplina extends StatelessWidget {
   const _TarjetaDisciplina(this.disciplina);
 
-  final _Disciplina disciplina;
+  final Deporte disciplina;
 
   @override
   Widget build(BuildContext context) {
-    final conCupos = disciplina.cupos > 0;
+    final conCupos = disciplina.hayCupo;
+    final cupos = disciplina.cuposDisponibles;
     final colorCupos = conCupos ? ColoresSaman.verde : ColoresSaman.rojo;
     return Container(
       padding: const EdgeInsets.all(12),
@@ -968,7 +1002,10 @@ class _TarjetaDisciplina extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(disciplina.foto, fit: BoxFit.cover),
+                  Image.asset(
+                    FotosDisciplinas.de(disciplina.nombre) ?? _fotoGenerica,
+                    fit: BoxFit.cover,
+                  ),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -983,11 +1020,14 @@ class _TarjetaDisciplina extends StatelessWidget {
                   ),
                   Positioned(
                     left: 14,
+                    right: 14,
                     bottom: 10,
                     child: Text(
-                      disciplina.deporte,
+                      disciplina.nombre,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 28,
+                        fontSize: 24,
                         fontWeight: FontWeight.w700,
                         color: ColoresSaman.blanco,
                       ),
@@ -999,12 +1039,14 @@ class _TarjetaDisciplina extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            disciplina.nombre,
+            disciplina.codigo,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
-            disciplina.horario,
+            disciplina.lugar,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
               color: ColoresSaman.textoSecundario,
@@ -1018,7 +1060,11 @@ class _TarjetaDisciplina extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              conCupos ? '${disciplina.cupos} cupos' : 'Sin cupo',
+              !conCupos
+                  ? 'Sin cupo'
+                  : cupos == 1
+                  ? '1 cupo'
+                  : '$cupos cupos',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
