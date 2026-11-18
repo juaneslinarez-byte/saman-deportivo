@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/colores.dart';
 import '../../core/formatos.dart';
+import '../../core/rutas.dart';
 import '../../modelos/deporte.dart';
 import '../../repositorios/deporte_repository.dart';
 import '../../repositorios/usuario_repository.dart';
@@ -13,7 +14,6 @@ import 'deporte_form_view.dart';
 import 'inscritos_admin_view.dart';
 import 'resenas_admin_view.dart';
 import 'sesiones_cupos_view.dart';
-import 'admin_usuarios_view.dart';
 
 /// Pantalla de gestión de deportes para el administrador (RF-ADM-01, RF-ADM-02).
 class AdminDeportesView extends StatelessWidget {
@@ -62,15 +62,8 @@ class _AdminDeportesCuerpo extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.people_alt_outlined),
             tooltip: 'Gestión de Usuarios',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      const AdminUsuariosView(idAdminActual: 'admin_id_actual'),
-                ),
-              );
-            },
+            // Por la ruta, para que reciba el id real del administrador.
+            onPressed: () => Navigator.pushNamed(context, Rutas.adminUsuarios),
           ),
         ],
       ),
