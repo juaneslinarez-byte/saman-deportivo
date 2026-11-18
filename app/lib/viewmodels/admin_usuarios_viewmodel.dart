@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../core/formatos.dart';
 import '../modelos/modelos.dart';
 import '../repositorios/usuario_repository.dart';
 
@@ -54,7 +55,7 @@ class AdminUsuariosViewModel extends ChangeNotifier {
   }
 
   void buscar(String query) {
-    _busqueda = query.trim().toLowerCase();
+    _busqueda = Formatos.paraBuscar(query);
     _aplicarFiltros();
     notifyListeners();
   }
@@ -73,7 +74,8 @@ class AdminUsuariosViewModel extends ChangeNotifier {
       }
 
       if (_busqueda.isNotEmpty) {
-        final nombreCompleto = '${u.nombre} ${u.apellido}'.toLowerCase();
+        // Sin tildes en los dos lados: «jose» encuentra a «José».
+        final nombreCompleto = Formatos.paraBuscar('${u.nombre} ${u.apellido}');
         final correo = u.correo.toLowerCase();
         final cedula = u.cedula.toLowerCase();
         final carnet = (u is Estudiante) ? u.carnet.toLowerCase() : '';

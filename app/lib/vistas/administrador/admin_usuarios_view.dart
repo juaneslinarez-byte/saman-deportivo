@@ -9,6 +9,7 @@ import '../../core/catalogos.dart';
 import '../../core/formatos.dart';
 import '../../core/validadores.dart';
 import '../../core/colores.dart';
+import '../../viewmodels/auth_viewmodel.dart';
 import '../comun/campos_formulario.dart';
 import '../comun/disenio.dart';
 
@@ -47,6 +48,8 @@ class _AdminUsuariosBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<AdminUsuariosViewModel>();
+    // El administrador no puede deshabilitarse a sí mismo: perdería el acceso.
+    final miId = context.watch<AuthViewModel?>()?.idUsuarioActual;
 
     final filtros = <(String, Actor?)>[
       ('Todos', null),
@@ -257,37 +260,41 @@ class _AdminUsuariosBody extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            PopupMenuButton<String>(
-                              tooltip: 'Acciones',
-                              icon: const Icon(
-                                Icons.more_vert,
-                                color: ColoresSaman.textoSecundario,
-                              ),
-                              onSelected: (val) =>
-                                  _ejecutarAccion(context, vm, u, val),
-                              itemBuilder: (ctx) => [
-                                PopupMenuItem(
-                                  value: 'habilitado',
-                                  child: Text(
-                                    u.habilitado ? 'Deshabilitar' : 'Habilitar',
-                                  ),
+                            if (u.id != miId || u is Estudiante)
+                              PopupMenuButton<String>(
+                                tooltip: 'Acciones',
+                                icon: const Icon(
+                                  Icons.more_vert,
+                                  color: ColoresSaman.textoSecundario,
                                 ),
-                                if (u is Estudiante) ...[
-                                  PopupMenuItem(
-                                    value: 'solvente',
-                                    child: Text(
-                                      u.solvente
-                                          ? 'Marcar sin solvencia'
-                                          : 'Marcar solvente',
+                                onSelected: (val) =>
+                                    _ejecutarAccion(context, vm, u, val),
+                                itemBuilder: (ctx) => [
+                                  if (u.id != miId)
+                                    PopupMenuItem(
+                                      value: 'habilitado',
+                                      child: Text(
+                                        u.habilitado
+                                            ? 'Deshabilitar'
+                                            : 'Habilitar',
+                                      ),
                                     ),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'convertir',
-                                    child: Text('Convertir en entrenador'),
-                                  ),
+                                  if (u is Estudiante) ...[
+                                    PopupMenuItem(
+                                      value: 'solvente',
+                                      child: Text(
+                                        u.solvente
+                                            ? 'Marcar sin solvencia'
+                                            : 'Marcar solvente',
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'convertir',
+                                      child: Text('Convertir en entrenador'),
+                                    ),
+                                  ],
                                 ],
-                              ],
-                            ),
+                              ),
                           ],
                         ),
                       ),

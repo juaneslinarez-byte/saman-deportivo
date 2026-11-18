@@ -8,6 +8,7 @@ import '../../modelos/modelos.dart';
 import '../../repositorios/repositorios.dart';
 import '../../viewmodels/perfil_viewmodel.dart';
 import '../../viewmodels/solvencia_viewmodel.dart';
+import '../comun/boton_paypal.dart';
 
 /// «Mi solvencia» (CU-12): el estudiante ve si está solvente, paga la cuota
 /// del trimestre y sigue el estado de sus pagos.
@@ -191,48 +192,31 @@ class _TarjetaPago extends StatelessWidget {
   final Estudiante perfil;
   final SolvenciaViewModel vm;
 
-  Future<void> _pagar(BuildContext context) async {
-    final monto = Solvencia.formatoMonto(vm.monto);
-    final confirmado = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('¿Estás seguro de pagar?'),
-        content: Text(
-          'Se cobrarán $monto por «${Solvencia.concepto}» a nombre de '
-          '${perfil.nombreCompleto}.\n\nEl pago quedará en revisión hasta '
-          'que el administrador lo confirme.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ColoresSaman.naranja,
-              foregroundColor: ColoresSaman.blanco,
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Sí, pagar $monto'),
-          ),
-        ],
-      ),
-    );
-    if (confirmado != true || !context.mounted) return;
-
-    final pago = await vm.pagar(perfil);
-    if (!context.mounted) return;
+  /// PayPal ya cobró: se registra el pago con el id de la operación.
+  ///
+  /// Al registrarse, esta tarjeta desaparece (el pago queda en revisión),
+  /// así que los avisos se muestran con el navegador de la pantalla.
+  Future<void> _registrar(BuildContext context, String idPayPal) async {
+    final navegador = Navigator.of(context);
+    final avisos = ScaffoldMessenger.of(context);
+    final pago = await vm.pagar(perfil, referencia: idPayPal);
+    if (!navegador.mounted) return;
     if (pago == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      avisos.showSnackBar(
         SnackBar(
-          content: Text(vm.error ?? 'No se pudo procesar el pago.'),
+          content: Text(
+            '${vm.error ?? 'No se pudo registrar el pago.'} Guarda tu '
+            'referencia de PayPal ($idPayPal) y contacta a la coordinación '
+            'de deportes.',
+          ),
+          duration: const Duration(seconds: 10),
           backgroundColor: ColoresSaman.rojo,
         ),
       );
       return;
     }
     await showDialog<void>(
-      context: context,
+      context: navegador.context,
       builder: (ctx) => AlertDialog(
         icon: const Icon(
           Icons.check_circle_outline,
@@ -286,33 +270,32 @@ class _TarjetaPago extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Pago con PayPal (modo de prueba: no se hace ningún cobro real).',
+            'Pago con PayPal en modo de prueba (sandbox): usa una cuenta de '
+            'prueba de PayPal; no se cobra dinero real.',
             style: TextStyle(fontSize: 12, color: ColoresSaman.textoSecundario),
           ),
           const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: ColoresSaman.naranja,
-                foregroundColor: ColoresSaman.blanco,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: const StadiumBorder(),
+          if (vm.pagando)
+            const SizedBox(
+              height: 56,
+              child: Center(
+                child: CircularProgressIndicator(color: ColoresSaman.naranja),
               ),
-              onPressed: vm.pagando ? null : () => _pagar(context),
-              icon: vm.pagando
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: ColoresSaman.blanco,
-                      ),
-                    )
-                  : const Icon(Icons.payment),
-              label: Text(vm.pagando ? 'Procesando pago…' : 'Pagar con PayPal'),
+            )
+          else
+            BotonPayPal(
+              monto: vm.monto,
+              descripcion: Solvencia.concepto,
+              alAprobar: (id) => _registrar(context, id),
+              alFallar: (error) => ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'PayPal no pudo procesar el pago. No se hizo ningún cobro.',
+                  ),
+                  backgroundColor: ColoresSaman.rojo,
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );

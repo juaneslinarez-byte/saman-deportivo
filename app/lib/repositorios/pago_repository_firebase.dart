@@ -7,8 +7,9 @@ import 'pago_repository.dart';
 
 /// Pagos de solvencia en Cloud Firestore.
 ///
-/// La pasarela todavía es simulada: [pagar] genera una referencia como la
-/// que devolvería PayPal y guarda el pago como pendiente. El administrador
+/// El cobro lo hace PayPal (sandbox) en el navegador y [pagar] recibe el id
+/// de la operación como referencia; sin referencia, simula la pasarela.
+/// El pago se guarda como pendiente. El administrador
 /// lo aprueba o lo rechaza, y al aprobarlo el estudiante queda solvente en
 /// la misma operación (RF-ADM-05, RF-SIS-07).
 class PagoRepositoryFirebase implements PagoRepository {
@@ -25,14 +26,16 @@ class PagoRepositoryFirebase implements PagoRepository {
   Future<Pago> pagar({
     required Estudiante estudiante,
     required double monto,
+    String? referencia,
   }) async {
     if (monto <= 0) {
       throw Exception('El monto del pago no es válido.');
     }
-    // Simula el tiempo que tarda la pasarela en responder.
-    await Future<void>.delayed(const Duration(milliseconds: 1200));
-
-    final referencia = _referencia();
+    if (referencia == null) {
+      // Simula el tiempo que tarda la pasarela en responder.
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      referencia = _referencia();
+    }
     final ref = _pagos.doc();
     final pago = Pago(
       id: ref.id,

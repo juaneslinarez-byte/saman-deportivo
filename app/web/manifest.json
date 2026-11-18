@@ -2,11 +2,13 @@
     "name": "Samán Deportivo",
     "short_name": "Samán Deportivo",
     "start_url": ".",
+    "scope": ".",
+    "lang": "es",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
+    "background_color": "#F6F4EE",
+    "theme_color": "#0F3D2E",
     "description": "Sistema de gestión de clubes deportivos de la UNIMET",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

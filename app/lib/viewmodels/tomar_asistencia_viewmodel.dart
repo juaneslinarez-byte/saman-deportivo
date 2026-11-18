@@ -81,7 +81,24 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
   List<Sesion> get sesiones => _sesiones;
 
   /// Inscritos activos, ordenados por nombre.
-  List<Inscripcion> get inscritos => _inscritos;
+  /// Inscritos a quienes se les toma la asistencia en la fecha elegida: solo
+  /// los que ya estaban inscritos ese día. Así una clase anterior a la
+  /// inscripción de alguien no lo cuenta como ausente.
+  List<Inscripcion> get inscritos {
+    final fecha = _fecha;
+    if (fecha == null) return _inscritos;
+    final finDelDia = DateTime(fecha.year, fecha.month, fecha.day + 1);
+    return _inscritos.where((i) => i.fecha.isBefore(finDelDia)).toList();
+  }
+
+  /// Día en que se inscribió el primero de la nómina, o nulo si no hay nadie.
+  DateTime? get _primeraInscripcion {
+    if (_inscritos.isEmpty) return null;
+    final primera = _inscritos
+        .map((i) => i.fecha)
+        .reduce((a, b) => a.isBefore(b) ? a : b);
+    return DateTime(primera.year, primera.month, primera.day);
+  }
 
   Sesion? get sesion => _sesion;
   DateTime? get fecha => _fecha;
@@ -111,6 +128,9 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
     final sesion = _sesion;
     if (sesion == null) return false;
     if (dia.isBefore(primeraFecha)) return false;
+    // Antes de que hubiera inscritos no hay a quién tomarle la asistencia.
+    final desde = _primeraInscripcion;
+    if (desde != null && dia.isBefore(desde)) return false;
     return Validadores.fechaDeClase(dia, sesion.dia, hoy: _reloj()) == null;
   }
 
@@ -154,13 +174,13 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
 
   bool presente(String idInscripcion) => _marcas[idInscripcion] ?? false;
 
-  int get presentes => _inscritos.where((i) => presente(i.id)).length;
+  int get presentes => inscritos.where((i) => presente(i.id)).length;
 
   /// «12 de 15 presentes».
-  String get resumen => '$presentes de ${_inscritos.length} presentes';
+  String get resumen => '$presentes de ${inscritos.length} presentes';
 
   /// Cambios que todavía no se guardaron.
-  bool get hayCambios => _inscritos.any(
+  bool get hayCambios => inscritos.any(
     (i) => !_conRegistro.contains(i.id) || presente(i.id) != _guardado[i.id],
   );
 
@@ -168,7 +188,7 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
   bool get puedeGuardar =>
       _sesion != null &&
       errorFecha == null &&
-      _inscritos.isNotEmpty &&
+      inscritos.isNotEmpty &&
       !_cargandoRegistro &&
       !_guardando &&
       hayCambios;
@@ -348,7 +368,7 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
 
   void marcarTodos(bool presentes) {
     if (_guardando) return;
-    for (final inscripcion in _inscritos) {
+    for (final inscripcion in inscritos) {
       _marcas[inscripcion.id] = presentes;
     }
     _tocado = true;
@@ -369,7 +389,7 @@ class TomarAsistenciaViewModel extends ChangeNotifier {
     _notificar();
 
     final registros = [
-      for (final inscripcion in _inscritos)
+      for (final inscripcion in inscritos)
         Asistencia(
           id: Asistencia.idPara(inscripcion.id, sesion.id, fecha),
           idInscripcion: inscripcion.id,

@@ -114,8 +114,9 @@ service cloud.firestore {
     // Catálogo: deportes/{idDeporte} y sesiones/{idSesion}
     // ---------------------------------------------------------------
     match /deportes/{idDeporte} {
-      // Lo lee cualquier usuario con sesión (RF-EST-02).
-      allow read: if conSesion();
+      // Lo lee cualquier usuario con sesión (RF-EST-02). Las disciplinas
+      // publicadas también las ve el visitante en la página de bienvenida.
+      allow read: if conSesion() || resource.data.visible == true;
 
       // Solo el administrador crea, edita y elimina deportes, asigna
       // entrenadores y fija los cupos (RF-ADM-01 a RF-ADM-03).
@@ -286,6 +287,121 @@ service cloud.firestore {
       // La borra su autor o el administrador (moderación).
       allow delete: if esAdministrador()
         || (conSesion() && resource.data.idEstudiante == request.auth.uid);
+    }
+
+    // ---------------------------------------------------------------
+    // Eventos: eventos/{idEvento}
+    // ---------------------------------------------------------------
+    // Reserva de un estudiante en un evento. Su id es siempre
+    // idEstudiante_idEvento (Reserva.idPara en el código).
+    function rutaReserva(uid, idEvento) {
+      return /databases/$(database)/documents/reservas/$(uid + '_' + idEvento);
+    }
+
+    function eventoAntes(idEvento) {
+      return get(/databases/$(database)/documents/eventos/$(idEvento)).data;
+    }
+
+    function eventoDespues(idEvento) {
+      return getAfter(/databases/$(database)/documents/eventos/$(idEvento)).data;
+    }
+
+    match /eventos/{idEvento} {
+      // Los ve cualquier usuario con sesión.
+      allow read: if conSesion();
+
+      // Solo el administrador los publica, edita, cancela y elimina. El
+      // cupo y los cupos disponibles siempre quedan en un rango válido.
+      allow create: if esAdministrador() && eventoValido();
+      allow delete: if esAdministrador();
+
+      // El estudiante solo mueve los cupos disponibles, y únicamente en la
+      // misma operación en que su reserva cambia de estado: bajan las
+      // personas de la reserva que queda en revisión y suben las de la
+      // reserva que cancela.
+      allow update: if (esAdministrador() && eventoValido()) || (
+        conSesion()
+        && cambiaSolo(['cuposDisponibles'])
+        && request.resource.data.cuposDisponibles >= 0
+        && request.resource.data.cuposDisponibles <= resource.data.cupo
+        && (
+          (getAfter(rutaReserva(request.auth.uid, idEvento)).data.estado == 'enRevision'
+            && (!exists(rutaReserva(request.auth.uid, idEvento))
+                || get(rutaReserva(request.auth.uid, idEvento)).data.estado in ['cancelada', 'rechazada'])
+            && request.resource.data.cuposDisponibles == resource.data.cuposDisponibles
+                 - getAfter(rutaReserva(request.auth.uid, idEvento)).data.personas)
+          ||
+          (getAfter(rutaReserva(request.auth.uid, idEvento)).data.estado == 'cancelada'
+            && get(rutaReserva(request.auth.uid, idEvento)).data.estado in ['enRevision', 'aprobada']
+            && request.resource.data.cuposDisponibles == resource.data.cuposDisponibles
+                 + get(rutaReserva(request.auth.uid, idEvento)).data.personas)
+        )
+      );
+
+      function eventoValido() {
+        return request.resource.data.titulo is string
+          && request.resource.data.cupo is int
+          && request.resource.data.cupo >= 1
+          && request.resource.data.cupo <= 500
+          && request.resource.data.cuposDisponibles >= 0
+          && request.resource.data.cuposDisponibles <= request.resource.data.cupo
+          && request.resource.data.monto >= 0
+          && request.resource.data.estado in ['publicado', 'cancelado'];
+      }
+    }
+
+    // ---------------------------------------------------------------
+    // Reservas: reservas/{idEstudiante_idEvento}
+    // ---------------------------------------------------------------
+    match /reservas/{idReserva} {
+      // El estudiante lee las suyas (también la que todavía no existe, que
+      // la transacción de reservar consulta antes de crearla); el
+      // administrador, todas.
+      allow read: if esAdministrador()
+        || (conSesion() && idReserva.matches(request.auth.uid + '_.+'))
+        || (conSesion() && resource.data.idEstudiante == request.auth.uid);
+
+      // Reservar: el propio estudiante habilitado, con su nombre y carnet,
+      // en un evento publicado que no ha empezado, con las personas
+      // permitidas, el monto correcto y el cupo descontado en la misma
+      // operación.
+      function reservaNueva() {
+        return conSesion()
+          && miPerfil().actor == 'estudiante'
+          && miPerfil().habilitado == true
+          && idReserva == request.auth.uid + '_' + request.resource.data.idEvento
+          && request.resource.data.idEstudiante == request.auth.uid
+          && request.resource.data.estado == 'enRevision'
+          && request.resource.data.nombreEstudiante == miPerfil().nombre + ' ' + miPerfil().apellido
+          && request.resource.data.carnetEstudiante == miPerfil().carnet
+          && request.resource.data.personas is int
+          && request.resource.data.personas >= 1
+          && request.resource.data.personas <= eventoAntes(request.resource.data.idEvento).maxPorReserva
+          && request.resource.data.monto == eventoAntes(request.resource.data.idEvento).monto * request.resource.data.personas
+          && eventoAntes(request.resource.data.idEvento).estado == 'publicado'
+          && eventoAntes(request.resource.data.idEvento).inicio > request.time
+          && eventoDespues(request.resource.data.idEvento).cuposDisponibles
+               == eventoAntes(request.resource.data.idEvento).cuposDisponibles - request.resource.data.personas;
+      }
+
+      allow create: if reservaNueva();
+
+      // Volver a reservar después de cancelar o de un rechazo; cancelar la
+      // propia antes del inicio, devolviendo el cupo en la misma operación;
+      // o el administrador que aprueba o rechaza.
+      allow update: if esAdministrador()
+        || (reservaNueva() && resource.data.estado in ['cancelada', 'rechazada'])
+        || (conSesion()
+          && resource.data.idEstudiante == request.auth.uid
+          && cambiaSolo(['estado'])
+          && resource.data.estado in ['enRevision', 'aprobada']
+          && request.resource.data.estado == 'cancelada'
+          && eventoAntes(resource.data.idEvento).inicio > request.time
+          && eventoDespues(resource.data.idEvento).cuposDisponibles
+               == eventoAntes(resource.data.idEvento).cuposDisponibles + resource.data.personas);
+
+      // Las reservas no se borran: quedan en el historial.
+      allow delete: if false;
     }
 
     // Cualquier otra colección queda cerrada.
