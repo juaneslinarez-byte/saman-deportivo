@@ -53,6 +53,18 @@ abstract final class Formatos {
 
   static String correo(String texto) => texto.trim().toLowerCase();
 
+  /// Texto para comparar en una búsqueda: minúsculas y sin tildes, para que
+  /// «José» y «jose» coincidan. La «ñ» se conserva: «año» no es «ano».
+  static String paraBuscar(String texto) {
+    const conTilde = 'áàäâéèëêíìïîóòöôúùüû';
+    const sinTilde = 'aaaaeeeeiiiioooouuuu';
+    var resultado = espacios(texto).toLowerCase();
+    for (var i = 0; i < conTilde.length; i++) {
+      resultado = resultado.replaceAll(conTilde[i], sinTilde[i]);
+    }
+    return resultado;
+  }
+
   /// «02/11/2026».
   static String fecha(DateTime fecha) =>
       '${fecha.day.toString().padLeft(2, '0')}/'
