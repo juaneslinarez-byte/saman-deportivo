@@ -57,6 +57,12 @@
             style: { layout: 'horizontal', shape: 'pill', color: 'gold', label: 'pay', height: 45, tagline: false },
             createOrder: function (data, actions) {
               return actions.order.create({
+                // No hay nada que enviar: PayPal no pide dirección.
+                application_context: {
+                  brand_name: 'Samán Deportivo',
+                  shipping_preference: 'NO_SHIPPING',
+                  user_action: 'PAY_NOW'
+                },
                 purchase_units: [{
                   description: descripcion,
                   amount: { currency_code: 'USD', value: monto }
