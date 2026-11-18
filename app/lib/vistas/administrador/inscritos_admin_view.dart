@@ -260,8 +260,8 @@ Future<void> _inscribir(
       title: const Text('Confirmar inscripción'),
       content: Text(
         '¿Inscribir a ${elegido.nombreCompleto} (carnet ${elegido.carnet}) '
-        'en ${vm.deporte.nombre}? Se ocupará uno de los '
-        '${vm.deporte.cuposDisponibles} cupos disponibles.',
+        'en ${vm.deporte.nombre}? '
+        '${vm.deporte.cuposDisponibles == 1 ? 'Se ocupará el último cupo disponible.' : 'Se ocupará uno de los ${vm.deporte.cuposDisponibles} cupos disponibles.'}',
       ),
       actions: [
         TextButton(
