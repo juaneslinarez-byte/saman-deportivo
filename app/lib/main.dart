@@ -9,12 +9,14 @@ import 'repositorios/asistencia_repository_firebase.dart';
 import 'repositorios/auth_repository_firebase.dart';
 import 'repositorios/deporte_repository_firebase.dart';
 import 'repositorios/inscripcion_repository_firebase.dart';
+import 'repositorios/evento_repository_firebase.dart';
 import 'repositorios/pago_repository_firebase.dart';
 import 'repositorios/repositorios.dart';
 import 'repositorios/usuario_repository_firebase.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/perfil_viewmodel.dart';
 import 'vistas/administrador/admin_deportes_view.dart';
+import 'vistas/administrador/admin_eventos_view.dart';
 import 'vistas/administrador/admin_usuarios_view.dart';
 import 'vistas/administrador/pagos_admin_view.dart';
 import 'vistas/administrador/panel_admin_view.dart';
@@ -68,6 +70,7 @@ class MyApp extends StatelessWidget {
           create: (_) => AsistenciaRepositoryFirebase(),
         ),
         Provider<PagoRepository>(create: (_) => PagoRepositoryFirebase()),
+        Provider<EventoRepository>(create: (_) => EventoRepositoryFirebase()),
         ChangeNotifierProvider<AuthViewModel>(
           create: (context) => AuthViewModel(
             authRepository: context.read<AuthRepository>(),
@@ -123,6 +126,7 @@ class MyApp extends StatelessWidget {
             idAdminActual: context.read<AuthViewModel>().idUsuarioActual ?? '',
           ),
           Rutas.adminPagos: (context) => const PagosAdminView(),
+          Rutas.adminEventos: (context) => const AdminEventosView(),
           Rutas.adminPanel: (context) => const PanelAdminView(),
           Rutas.historialEntrenador: (context) =>
               const HistorialAsistenciaView(),

@@ -106,6 +106,12 @@ class InicioView extends StatelessWidget {
             icono: Icons.request_quote_outlined,
             ruta: Rutas.adminPagos,
           ),
+          SeccionInicio(
+            titulo: 'Eventos',
+            descripcion: 'Publica eventos y revisa sus reservas',
+            icono: Icons.celebration_outlined,
+            ruta: Rutas.adminEventos,
+          ),
           _miPerfil,
         ],
         _ => const [_miPerfil],

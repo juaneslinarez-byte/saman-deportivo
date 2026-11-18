@@ -289,6 +289,27 @@ service cloud.firestore {
         || (conSesion() && resource.data.idEstudiante == request.auth.uid);
     }
 
+    // ---------------------------------------------------------------
+    // Eventos: eventos/{idEvento}
+    // ---------------------------------------------------------------
+    match /eventos/{idEvento} {
+      // Los ve cualquier usuario con sesión.
+      allow read: if conSesion();
+
+      // Solo el administrador los publica, edita, cancela y elimina. El
+      // cupo y los cupos disponibles siempre quedan en un rango válido.
+      allow create, update: if esAdministrador()
+        && request.resource.data.titulo is string
+        && request.resource.data.cupo is int
+        && request.resource.data.cupo >= 1
+        && request.resource.data.cupo <= 500
+        && request.resource.data.cuposDisponibles >= 0
+        && request.resource.data.cuposDisponibles <= request.resource.data.cupo
+        && request.resource.data.monto >= 0
+        && request.resource.data.estado in ['publicado', 'cancelado'];
+      allow delete: if esAdministrador();
+    }
+
     // Cualquier otra colección queda cerrada.
   }
 }
