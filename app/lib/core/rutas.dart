@@ -53,6 +53,9 @@ abstract final class Rutas {
   /// Pagos de solvencia que esperan aprobación.
   static const String adminPagos = '/admin/pagos';
 
+  /// Eventos del club: publicarlos, editarlos y cancelarlos.
+  static const String adminEventos = '/admin/eventos';
+
   /// Pantalla que se muestra al abrir la aplicación.
   static const String inicial = bienvenida;
 }

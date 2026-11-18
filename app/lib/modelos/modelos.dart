@@ -7,6 +7,7 @@ export 'asistencia.dart';
 export 'deporte.dart';
 export 'entrenador.dart';
 export 'estudiante.dart';
+export 'evento.dart';
 export 'inscripcion.dart';
 export 'pago.dart';
 export 'persona.dart';

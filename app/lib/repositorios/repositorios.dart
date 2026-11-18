@@ -5,6 +5,7 @@ library;
 export 'asistencia_repository.dart';
 export 'auth_repository.dart';
 export 'deporte_repository.dart';
+export 'evento_repository.dart';
 export 'inscripcion_repository.dart';
 export 'pago_repository.dart';
 export 'usuario_repository.dart';

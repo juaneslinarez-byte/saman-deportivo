@@ -252,6 +252,74 @@ abstract final class Validadores {
     return null;
   }
 
+  /// Título de un evento: de 3 a 60 caracteres, con palabras reales. Admite
+  /// números y signos comunes («Copa UNIMET 2026», «Clínica de saque»).
+  static String? tituloEvento(String? valor) {
+    final texto = Formatos.espacios(valor ?? '');
+    if (texto.isEmpty) return 'Escribe el título del evento';
+    if (texto.length < 3) return 'Es muy corto';
+    if (texto.length > 60) return 'Máximo 60 caracteres';
+    if (!RegExp("^[${Formatos.letras}0-9' .,:()#º°-]+\$").hasMatch(texto)) {
+      return 'Usa letras, números y signos comunes';
+    }
+    final letras = RegExp('[${Formatos.letras}]').allMatches(texto).length;
+    if (letras < 3 || !_vocal.hasMatch(texto) || _tresIguales.hasMatch(texto)) {
+      return 'Escribe un título real';
+    }
+    return null;
+  }
+
+  /// Descripción de un evento: de 10 a 300 caracteres, con palabras reales.
+  /// Usa las mismas reglas que el comentario de una reseña.
+  static String? descripcionEvento(String? valor) {
+    final error = comentarioResena(valor);
+    if (error == 'Escribe tu comentario') return 'Escribe la descripción';
+    if (error == 'Escribe un comentario con palabras reales') {
+      return 'Escribe una descripción con palabras reales';
+    }
+    return error;
+  }
+
+  /// Número entero entre [minimo] y [maximo], como el cupo de un evento.
+  static String? enteroEntre(
+    String? valor, {
+    required int minimo,
+    required int maximo,
+    String campo = 'un número',
+  }) {
+    final texto = valor?.trim() ?? '';
+    if (texto.isEmpty) return 'Escribe $campo';
+    final numero = int.tryParse(texto);
+    if (numero == null) return 'Usa solo números enteros';
+    if (numero < minimo) return 'Mínimo $minimo';
+    if (numero > maximo) return 'Máximo $maximo';
+    return null;
+  }
+
+  /// Precio por persona de un evento: de 0 (gratis) a 500 dólares, con
+  /// hasta dos decimales. Acepta coma o punto.
+  static String? montoEvento(String? valor) {
+    final texto = (valor ?? '').trim().replaceAll(',', '.');
+    if (texto.isEmpty) return 'Escribe el precio (0 si es gratis)';
+    if (!RegExp(r'^\d{1,3}(\.\d{1,2})?$').hasMatch(texto)) {
+      return 'Escribe un monto como 10 o 7,50';
+    }
+    final monto = double.parse(texto);
+    if (monto > 500) return 'Máximo \$500';
+    return null;
+  }
+
+  /// Fecha y hora de inicio de un evento: en el futuro y a menos de un año.
+  static String? inicioEvento(DateTime? inicio, {DateTime? hoy}) {
+    if (inicio == null) return 'Elige la fecha y la hora';
+    final ahora = hoy ?? DateTime.now();
+    if (!inicio.isAfter(ahora)) return 'Elige una fecha y hora futuras';
+    if (inicio.isAfter(ahora.add(const Duration(days: 366)))) {
+      return 'Elige una fecha dentro del próximo año';
+    }
+    return null;
+  }
+
   /// Años de experiencia del entrenador: un número entero entre 0 y 50.
   static String? aniosExperiencia(String? valor) {
     final texto = valor?.trim() ?? '';

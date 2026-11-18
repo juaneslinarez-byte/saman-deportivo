@@ -158,6 +158,7 @@ void main() {
       Rutas.adminDeportes,
       Rutas.adminUsuarios,
       Rutas.adminPagos,
+      Rutas.adminEventos,
       Rutas.perfil,
     ]);
   });
