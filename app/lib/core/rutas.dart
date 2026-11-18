@@ -34,6 +34,9 @@ abstract final class Rutas {
 
   /// Estado de la solvencia y pago de la cuota del trimestre.
   static const String solvencia = '/estudiante/solvencia';
+
+  /// Próximos eventos del club, su reserva y «Mis reservas».
+  static const String eventos = '/estudiante/eventos';
   static const String disciplinasEntrenador = '/entrenador';
 
   /// Resumen del entrenador: inscritos, asistencia y próxima clase.
