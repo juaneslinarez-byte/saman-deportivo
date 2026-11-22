@@ -419,7 +419,8 @@ service cloud.firestore {
           || resource.data.idEntrenador == request.auth.uid));
 
       // El entrenador pide una disciplina que no dirige, a su nombre y
-      // como pendiente. Si se la rechazaron, puede volver a enviarla.
+      // como pendiente. Si se la rechazaron, o se la aprobaron y luego lo
+      // quitaron de la disciplina, puede volver a enviarla.
       function solicitudNueva() {
         let datos = request.resource.data;
         let deporte = get(/databases/$(database)/documents/deportes/$(datos.idDeporte)).data;
@@ -433,7 +434,7 @@ service cloud.firestore {
           && deporte.get('idEntrenador', '') != request.auth.uid;
       }
       allow create: if solicitudNueva();
-      allow update: if (solicitudNueva() && resource.data.estado == 'rechazada')
+      allow update: if (solicitudNueva() && resource.data.estado in ['rechazada', 'aprobada'])
         || (esAdministrador()
           && resource.data.estado == 'pendiente'
           && cambiaSolo(['estado'])

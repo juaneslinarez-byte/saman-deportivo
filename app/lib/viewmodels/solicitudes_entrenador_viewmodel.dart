@@ -57,12 +57,10 @@ class SolicitudesEntrenadorViewModel extends ChangeNotifier {
                 Formatos.paraBuscar('${d.nombre} ${d.codigo}').contains(texto)))
           (deporte: d, solicitud: _solicitudes[d.id]),
     ];
-    int orden(OpcionSolicitud o) => switch (o.solicitud?.estado) {
-      null => 0,
-      EstadoSolicitud.rechazada => 0,
-      EstadoSolicitud.pendiente => 1,
-      EstadoSolicitud.aprobada => 2,
-    };
+    // Una solicitud aprobada de una disciplina que ya no dirige (el
+    // administrador lo quitó después) se puede volver a pedir.
+    int orden(OpcionSolicitud o) =>
+        o.solicitud?.estado == EstadoSolicitud.pendiente ? 1 : 0;
     lista.sort((a, b) {
       final porEstado = orden(a).compareTo(orden(b));
       if (porEstado != 0) return porEstado;

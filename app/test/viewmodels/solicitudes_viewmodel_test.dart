@@ -107,6 +107,21 @@ void main() {
     expect(vmEntrenador.opciones, isEmpty);
   });
 
+  test(
+    'si lo quitan de la disciplina aprobada, puede volver a pedirla',
+    () async {
+      final vm = await entrenadorListo();
+      await vm.solicitar(natacion);
+      await solicitudes.aprobar(solicitudes.buscar('t1_nat')!);
+      final nat = await deportes.obtener('nat');
+      await deportes.actualizar(nat!.copyWith(idsEntrenadores: ['t2']));
+      await pumpEventQueue();
+      expect(vm.opciones.single.solicitud?.estado, EstadoSolicitud.aprobada);
+      expect(await vm.solicitar(natacion), isNull);
+      expect(solicitudes.buscar('t1_nat')?.estaPendiente, isTrue);
+    },
+  );
+
   test('si se la rechazan, puede volver a solicitarla', () async {
     final vm = await entrenadorListo();
     await vm.solicitar(natacion);
