@@ -13,4 +13,5 @@ export 'pago.dart';
 export 'persona.dart';
 export 'reserva.dart';
 export 'sesion.dart';
+export 'solicitud.dart';
 export 'resena.dart';

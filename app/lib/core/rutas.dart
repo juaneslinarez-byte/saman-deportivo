@@ -48,6 +48,9 @@ abstract final class Rutas {
   static const String asistenciaEntrenador = '/entrenador/asistencia';
   static const String historialEntrenador = '/entrenador/historial';
 
+  /// Pedir dirigir otra disciplina y ver el estado de lo pedido.
+  static const String solicitarDisciplina = '/entrenador/solicitudes';
+
   /// Panel resumen del administrador, con las cifras del club.
   static const String adminPanel = '/admin/panel';
   static const String adminDeportes = '/admin/deportes';
@@ -58,6 +61,9 @@ abstract final class Rutas {
 
   /// Eventos del club: publicarlos, editarlos y cancelarlos.
   static const String adminEventos = '/admin/eventos';
+
+  /// Solicitudes de los entrenadores para dirigir otra disciplina.
+  static const String adminSolicitudes = '/admin/solicitudes';
 
   /// Pantalla que se muestra al abrir la aplicación.
   static const String inicial = bienvenida;
