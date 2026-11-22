@@ -18,6 +18,7 @@ class ResenaViewModel extends ChangeNotifier {
   ResenaEstado _estado = ResenaEstado.inicial;
   Resena? _miResena;
   int _calificacion = 0;
+  int _calificacionEntrenador = 0;
   String _comentario = '';
   bool _guardando = false;
   String? _error;
@@ -26,6 +27,9 @@ class ResenaViewModel extends ChangeNotifier {
   ResenaEstado get estado => _estado;
   Resena? get miResena => _miResena;
   int get calificacion => _calificacion;
+
+  /// Estrellas para el entrenador de la disciplina (RF-EST-09).
+  int get calificacionEntrenador => _calificacionEntrenador;
   String get comentario => _comentario;
   bool get guardando => _guardando;
   String? get error => _error;
@@ -34,15 +38,21 @@ class ResenaViewModel extends ChangeNotifier {
 
   bool get hayCambios {
     if (_miResena == null) {
-      return _comentario.trim().isNotEmpty || _calificacion != 0;
+      return _comentario.trim().isNotEmpty ||
+          _calificacion != 0 ||
+          _calificacionEntrenador != 0;
     }
     return _miResena!.calificacion != _calificacion ||
+        (_miResena!.calificacionEntrenador ?? 0) != _calificacionEntrenador ||
         _miResena!.comentario != _comentario.trim();
   }
 
   bool get puedeGuardar {
     if (_guardando) return false;
     if (_calificacion < 1 || _calificacion > 5) return false;
+    if (_calificacionEntrenador < 1 || _calificacionEntrenador > 5) {
+      return false;
+    }
     final validacion = Validadores.comentarioResena(_comentario);
     if (validacion != null) return false;
     return hayCambios;
@@ -61,6 +71,7 @@ class ResenaViewModel extends ChangeNotifier {
             _miResena = resena;
             if (resena != null) {
               _calificacion = resena.calificacion;
+              _calificacionEntrenador = resena.calificacionEntrenador ?? 0;
               _comentario = resena.comentario;
             }
             _estado = ResenaEstado.listo;
@@ -77,6 +88,12 @@ class ResenaViewModel extends ChangeNotifier {
   void setCalificacion(int nueva) {
     if (_calificacion == nueva) return;
     _calificacion = nueva;
+    notifyListeners();
+  }
+
+  void setCalificacionEntrenador(int nueva) {
+    if (_calificacionEntrenador == nueva) return;
+    _calificacionEntrenador = nueva;
     notifyListeners();
   }
 
@@ -102,6 +119,7 @@ class ResenaViewModel extends ChangeNotifier {
         estudiante: estudiante,
         idDeporte: idDeporte,
         calificacion: _calificacion,
+        calificacionEntrenador: _calificacionEntrenador,
         comentario: _comentario.trim(),
       );
       _guardando = false;
@@ -132,6 +150,7 @@ class ResenaViewModel extends ChangeNotifier {
       _miResena = null;
       _comentario = '';
       _calificacion = 0;
+      _calificacionEntrenador = 0;
       notifyListeners();
       return true;
     } catch (e) {

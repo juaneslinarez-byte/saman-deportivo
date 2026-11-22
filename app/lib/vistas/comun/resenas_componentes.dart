@@ -13,6 +13,17 @@ abstract final class Resenas {
     return suma / lista.length;
   }
 
+  /// Promedio de las estrellas del entrenador, sin contar las reseñas
+  /// anteriores que no lo calificaron.
+  static double? promedioEntrenador(List<Resena> lista) {
+    final notas = [
+      for (final r in lista)
+        if (r.calificacionEntrenador != null) r.calificacionEntrenador!,
+    ];
+    if (notas.isEmpty) return null;
+    return notas.reduce((a, b) => a + b) / notas.length;
+  }
+
   /// «4,3»: una cifra decimal con coma.
   static String formatoPromedio(double valor) =>
       valor.toStringAsFixed(1).replaceAll('.', ',');
@@ -83,6 +94,18 @@ class ResumenResenas extends StatelessWidget {
                 color: ColoresSaman.textoSecundario,
               ),
             ),
+            if (Resenas.promedioEntrenador(resenas) case final entrenador?)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  'Entrenador: ${Resenas.formatoPromedio(entrenador)} ★',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: ColoresSaman.azulOscuro,
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(width: 20),
@@ -213,6 +236,15 @@ class TarjetaResena extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Estrellas(resena.calificacion.toDouble(), tamano: 15),
+              if (resena.calificacionEntrenador case final entrenador?)
+                Text(
+                  'Entrenador $entrenador ★',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: ColoresSaman.azulOscuro,
+                  ),
+                ),
               Text(
                 '${Resenas.fecha(resena.fecha)}'
                 '${resena.editada ? ' · editada' : ''}',
