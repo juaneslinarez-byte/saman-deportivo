@@ -209,9 +209,23 @@ class _Contenido extends StatelessWidget {
         SeccionPanel(
           titulo: 'Requiere atención',
           child: avisos.isEmpty
-              ? const Text(
-                  'Todo en orden: estás solvente y vas bien con tu asistencia.',
-                  style: TextStyle(color: ColoresSaman.verde),
+              ? Text(
+                  switch (asistencia) {
+                    null =>
+                      'Todo en orden: estás solvente. Tu asistencia '
+                          'aparecerá cuando el entrenador la registre.',
+                    final a when a >= 0.75 =>
+                      'Todo en orden: estás solvente y vas bien con tu '
+                          'asistencia.',
+                    _ =>
+                      'Estás solvente. Procura asistir más a tus clases '
+                          'para mejorar tu asistencia.',
+                  },
+                  style: TextStyle(
+                    color: asistencia == null || asistencia >= 0.75
+                        ? ColoresSaman.verde
+                        : ColoresSaman.naranja,
+                  ),
                 )
               : Column(children: avisos),
         ),

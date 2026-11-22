@@ -111,7 +111,7 @@ class _SesionesCuposBody extends StatelessWidget {
               ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.add),
-                label: const Text('+ Agregar sesión'),
+                label: const Text('Agregar sesión'),
                 onPressed: () => _mostrarDialogoFormularioSesion(context, vm),
               ),
             ],

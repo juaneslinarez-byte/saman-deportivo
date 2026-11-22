@@ -160,7 +160,9 @@ class _PorClase extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final clases = viewModel.clases;
-    final cantidad = clases.length == 1 ? '1 clase' : '${clases.length} clases';
+    final cantidad = clases.length == 1
+        ? '1 clase registrada'
+        : '${clases.length} clases registradas';
 
     return ListView(
       padding: const EdgeInsets.all(24),
@@ -168,7 +170,7 @@ class _PorClase extends StatelessWidget {
         _Encabezado(
           deporte: deporte,
           detalle:
-              '$cantidad registradas · ${viewModel.porcentajeGeneral} % de '
+              '$cantidad · ${viewModel.porcentajeGeneral} % de '
               'asistencia',
         ),
         for (final clase in clases)
