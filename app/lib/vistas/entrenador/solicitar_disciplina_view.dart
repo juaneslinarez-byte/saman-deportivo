@@ -175,11 +175,12 @@ class _TarjetaOpcion extends StatelessWidget {
     final ocupado = vm.enviando(deporte);
     final (String? etiqueta, Color color) = switch (estado) {
       EstadoSolicitud.pendiente => ('Pendiente', ColoresSaman.ambar),
-      EstadoSolicitud.aprobada => ('Aprobada', ColoresSaman.verde),
+      // Aprobada pero ya no la dirige: se puede pedir otra vez.
+      EstadoSolicitud.aprobada => (null, ColoresSaman.naranja),
       EstadoSolicitud.rechazada => ('Rechazada', ColoresSaman.rojo),
       null => (null, ColoresSaman.naranja),
     };
-    final puedePedir = estado == null || estado == EstadoSolicitud.rechazada;
+    final puedePedir = estado != EstadoSolicitud.pendiente;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -227,7 +228,11 @@ class _TarjetaOpcion extends StatelessWidget {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(estado == null ? 'Solicitar' : 'Solicitar de nuevo'),
+                  : Text(
+                      estado == EstadoSolicitud.rechazada
+                          ? 'Solicitar de nuevo'
+                          : 'Solicitar',
+                    ),
             ),
         ],
       ),
