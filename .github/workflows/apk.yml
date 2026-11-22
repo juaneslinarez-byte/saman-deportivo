@@ -1,0 +1,43 @@
+# Compila la aplicación para Android (APK) en la nube, sin necesidad de
+# instalar el SDK de Android en las computadoras del equipo. El APK queda
+# como artefacto descargable de la ejecución.
+name: Compilar APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/apk-android]
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.7
+          cache: true
+
+      - name: Instalar dependencias
+        run: flutter pub get
+
+      - name: Compilar APK
+        run: flutter build apk --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: saman-deportivo-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
