@@ -200,7 +200,7 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const Text(
-                        'Calificación',
+                        'La disciplina',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -235,6 +235,37 @@ class _FormularioResenaViewState extends State<FormularioResenaView> {
                           color: Colors.amber,
                         ),
                         textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'El entrenador',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(5, (index) {
+                          final valor = index + 1;
+                          final marcada =
+                              valor <= viewModel.calificacionEntrenador;
+                          return IconButton(
+                            iconSize: 34,
+                            tooltip: 'Entrenador: $valor de 5',
+                            icon: Icon(
+                              marcada ? Icons.star : Icons.star_border,
+                              color: marcada ? Colors.amber : Colors.grey,
+                            ),
+                            onPressed: viewModel.guardando
+                                ? null
+                                : () => viewModel.setCalificacionEntrenador(
+                                    valor,
+                                  ),
+                          );
+                        }),
                       ),
                       const SizedBox(height: 24),
                       TextFormField(

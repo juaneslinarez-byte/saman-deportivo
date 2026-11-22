@@ -280,6 +280,9 @@ service cloud.firestore {
         && request.resource.data.calificacion is int
         && request.resource.data.calificacion >= 1
         && request.resource.data.calificacion <= 5
+        && request.resource.data.calificacionEntrenador is int
+        && request.resource.data.calificacionEntrenador >= 1
+        && request.resource.data.calificacionEntrenador <= 5
         && request.resource.data.comentario is string
         && request.resource.data.comentario.size() >= 10
         && request.resource.data.comentario.size() <= 300;

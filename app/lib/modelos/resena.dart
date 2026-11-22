@@ -10,6 +10,7 @@ class Resena {
     required this.calificacion,
     required this.comentario,
     required this.fecha,
+    this.calificacionEntrenador,
     this.editada = false,
   });
 
@@ -20,8 +21,12 @@ class Resena {
   /// perfil del estudiante.
   final String nombreEstudiante;
 
-  /// De 1 a 5 estrellas.
+  /// De 1 a 5 estrellas, para la disciplina.
   final int calificacion;
+
+  /// De 1 a 5 estrellas, para el entrenador de la disciplina (RF-EST-09).
+  /// Es nula en las reseñas escritas antes de calificar al entrenador.
+  final int? calificacionEntrenador;
   final String comentario;
 
   /// Fecha de la última edición.
@@ -44,6 +49,8 @@ class Resena {
       fecha: fecha is String
           ? DateTime.tryParse(fecha) ?? DateTime.now()
           : DateTime.now(),
+      calificacionEntrenador: (datos['calificacionEntrenador'] as num?)
+          ?.toInt(),
       editada: datos['editada'] as bool? ?? false,
     );
   }
@@ -53,6 +60,7 @@ class Resena {
     'idEstudiante': idEstudiante,
     'nombreEstudiante': nombreEstudiante,
     'calificacion': calificacion,
+    'calificacionEntrenador': ?calificacionEntrenador,
     'comentario': comentario,
     'fecha': fecha.toIso8601String(),
     'editada': editada,
