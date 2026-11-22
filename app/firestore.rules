@@ -412,8 +412,11 @@ service cloud.firestore {
     // ---------------------------------------------------------------
     match /solicitudes/{idSolicitud} {
       // El administrador las ve todas; el entrenador, solo las suyas.
+      // La consulta del entrenador filtra por idEntrenador; la lectura de
+      // una sola usa el id.
       allow read: if esAdministrador()
-        || (conSesion() && idSolicitud.matches(request.auth.uid + '_.+'));
+        || (conSesion() && (idSolicitud.matches(request.auth.uid + '_.+')
+          || resource.data.idEntrenador == request.auth.uid));
 
       // El entrenador pide una disciplina que no dirige, a su nombre y
       // como pendiente. Si se la rechazaron, puede volver a enviarla.
