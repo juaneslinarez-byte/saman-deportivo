@@ -13,6 +13,7 @@ import 'repositorios/inscripcion_repository_firebase.dart';
 import 'repositorios/evento_repository_firebase.dart';
 import 'repositorios/pago_repository_firebase.dart';
 import 'repositorios/reserva_repository_firebase.dart';
+import 'repositorios/solicitud_repository_firebase.dart';
 import 'repositorios/repositorios.dart';
 import 'repositorios/usuario_repository_firebase.dart';
 import 'viewmodels/auth_viewmodel.dart';
@@ -22,6 +23,7 @@ import 'vistas/administrador/admin_eventos_view.dart';
 import 'vistas/administrador/admin_usuarios_view.dart';
 import 'vistas/administrador/pagos_admin_view.dart';
 import 'vistas/administrador/panel_admin_view.dart';
+import 'vistas/administrador/solicitudes_admin_view.dart';
 import 'vistas/auth/login_view.dart';
 import 'vistas/auth/recuperar_password_vista.dart';
 import 'vistas/auth/registro_view.dart';
@@ -30,6 +32,7 @@ import 'vistas/entrenador/disciplinas_entrenador_view.dart';
 import 'vistas/entrenador/historial_asistencia_view.dart';
 import 'vistas/entrenador/nomina_view.dart';
 import 'vistas/entrenador/panel_entrenador_view.dart';
+import 'vistas/entrenador/solicitar_disciplina_view.dart';
 import 'vistas/entrenador/tomar_asistencia_view.dart';
 import 'vistas/estudiante/catalogo_view.dart';
 import 'vistas/estudiante/confirmar_inscripcion_view.dart';
@@ -75,6 +78,9 @@ class MyApp extends StatelessWidget {
         Provider<PagoRepository>(create: (_) => PagoRepositoryFirebase()),
         Provider<EventoRepository>(create: (_) => EventoRepositoryFirebase()),
         Provider<ReservaRepository>(create: (_) => ReservaRepositoryFirebase()),
+        Provider<SolicitudRepository>(
+          create: (_) => SolicitudRepositoryFirebase(),
+        ),
         ChangeNotifierProvider<AuthViewModel>(
           create: (context) => AuthViewModel(
             authRepository: context.read<AuthRepository>(),
@@ -151,6 +157,8 @@ final Map<String, WidgetBuilder> _rutas = {
   Rutas.adminEventos: (context) => const AdminEventosView(),
   Rutas.adminPanel: (context) => const PanelAdminView(),
   Rutas.historialEntrenador: (context) => const HistorialAsistenciaView(),
+  Rutas.solicitarDisciplina: (context) => const SolicitarDisciplinaView(),
+  Rutas.adminSolicitudes: (context) => const SolicitudesAdminView(),
 };
 
 /// Rutas que se abren solas, sin el inicio debajo.

@@ -404,6 +404,37 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---------------------------------------------------------------
+    // Solicitudes: solicitudes/{idEntrenador_idDeporte}
+    // ---------------------------------------------------------------
+    match /solicitudes/{idSolicitud} {
+      // El administrador las ve todas; el entrenador, solo las suyas.
+      allow read: if esAdministrador()
+        || (conSesion() && idSolicitud.matches(request.auth.uid + '_.+'));
+
+      // El entrenador pide una disciplina que no dirige, a su nombre y
+      // como pendiente. Si se la rechazaron, puede volver a enviarla.
+      function solicitudNueva() {
+        let datos = request.resource.data;
+        let deporte = get(/databases/$(database)/documents/deportes/$(datos.idDeporte)).data;
+        return esEntrenador()
+          && idSolicitud == request.auth.uid + '_' + datos.idDeporte
+          && datos.idEntrenador == request.auth.uid
+          && datos.estado == 'pendiente'
+          && datos.nombreEntrenador == miPerfil().nombre + ' ' + miPerfil().apellido
+          && datos.mensaje is string && datos.mensaje.size() <= 200
+          && !(request.auth.uid in deporte.get('idsEntrenadores', []))
+          && deporte.get('idEntrenador', '') != request.auth.uid;
+      }
+      allow create: if solicitudNueva();
+      allow update: if (solicitudNueva() && resource.data.estado == 'rechazada')
+        || (esAdministrador()
+          && resource.data.estado == 'pendiente'
+          && cambiaSolo(['estado'])
+          && request.resource.data.estado in ['aprobada', 'rechazada']);
+      allow delete: if false;
+    }
+
     // Cualquier otra colección queda cerrada.
   }
 }
