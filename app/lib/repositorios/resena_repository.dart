@@ -9,6 +9,7 @@ abstract class ResenaRepository {
     required String idDeporte,
     required int calificacion,
     required String comentario,
+    int? calificacionEntrenador,
   });
 
   Future<void> eliminar(Resena resena);

@@ -46,8 +46,9 @@ class AlertaPanel {
   final String? ruta;
 }
 
-/// Panel resumen del administrador (CU-17, RF-ADM-07): cifras reales de
-/// usuarios, disciplinas, inscripciones, asistencia y pagos.
+/// Panel resumen del administrador (CU-17, RF-ADM-06): cifras reales de
+/// usuarios, disciplinas, inscripciones, asistencia, pagos, eventos y
+/// solicitudes de los entrenadores.
 ///
 /// Todo se calcula con los datos de Firestore y se observa en tiempo real:
 /// si un estudiante se inscribe, un entrenador toma la asistencia o llega
@@ -58,17 +59,23 @@ class PanelAdminViewModel extends ChangeNotifier {
     required this._usuarioRepository,
     required this._pagoRepository,
     required this._asistenciaRepository,
+    required this._eventoRepository,
+    required this._solicitudRepository,
   });
 
   final DeporteRepository _deporteRepository;
   final UsuarioRepository _usuarioRepository;
   final PagoRepository _pagoRepository;
   final AsistenciaRepository _asistenciaRepository;
+  final EventoRepository _eventoRepository;
+  final SolicitudRepository _solicitudRepository;
 
   PanelAdminEstado _estado = PanelAdminEstado.cargando;
   List<Deporte> _deportes = [];
   List<Persona> _usuarios = [];
   List<Pago> _pagosPendientes = [];
+  List<Evento> _eventosProximos = [];
+  List<Solicitud> _solicitudesPendientes = [];
   final Map<String, List<Asistencia>> _asistencias = {};
   final Map<String, int> _sesiones = {};
   DateTime? _actualizado;
@@ -79,6 +86,8 @@ class PanelAdminViewModel extends ChangeNotifier {
 
   StreamSubscription<List<Deporte>>? _deportesSub;
   StreamSubscription<List<Pago>>? _pagosSub;
+  StreamSubscription<List<Evento>>? _eventosSub;
+  StreamSubscription<List<Solicitud>>? _solicitudesSub;
   final Map<String, StreamSubscription<List<Asistencia>>> _asistenciaSubs = {};
   final Map<String, StreamSubscription<List<Sesion>>> _sesionesSubs = {};
 
@@ -96,6 +105,19 @@ class PanelAdminViewModel extends ChangeNotifier {
   int get estudiantesNoSolventes => totalEstudiantes - estudiantesSolventes;
   int get totalEntrenadores => _usuarios.whereType<Entrenador>().length;
   int get cuentasDeshabilitadas => _usuarios.where((u) => !u.habilitado).length;
+  int get totalUsuarios => _usuarios.length;
+
+  // ---------------------------------------------------------------------
+  // Eventos y solicitudes
+  // ---------------------------------------------------------------------
+  /// Eventos publicados que todavía no terminan.
+  int get eventosProximos => _eventosProximos.length;
+
+  /// Personas con una reserva en los próximos eventos.
+  int get personasReservadas =>
+      _eventosProximos.fold(0, (total, e) => total + e.reservados);
+
+  int get solicitudesPendientes => _solicitudesPendientes.length;
 
   // ---------------------------------------------------------------------
   // Disciplinas e inscripciones
@@ -165,6 +187,17 @@ class PanelAdminViewModel extends ChangeNotifier {
   /// Lo que conviene atender, de lo más urgente a lo menos.
   List<AlertaPanel> get alertas {
     final alertas = <AlertaPanel>[];
+    if (solicitudesPendientes > 0) {
+      alertas.add(
+        AlertaPanel(
+          solicitudesPendientes == 1
+              ? 'Hay 1 solicitud de un entrenador por revisar.'
+              : 'Hay $solicitudesPendientes solicitudes de entrenadores por '
+                    'revisar.',
+          ruta: Rutas.adminSolicitudes,
+        ),
+      );
+    }
     if (pagosEnRevision > 0) {
       alertas.add(
         AlertaPanel(
@@ -252,6 +285,19 @@ class PanelAdminViewModel extends ChangeNotifier {
       _cargoPagos = true;
       _cargarUsuarios();
     }, onError: (Object _) => _fallo());
+
+    // Eventos y solicitudes no bloquean el panel: si fallan, se muestran
+    // en cero.
+    _eventosSub?.cancel();
+    _eventosSub = _eventoRepository.observarProximos().listen((lista) {
+      _eventosProximos = lista;
+      notifyListeners();
+    }, onError: (Object _) {});
+    _solicitudesSub?.cancel();
+    _solicitudesSub = _solicitudRepository.observarPendientes().listen((lista) {
+      _solicitudesPendientes = lista;
+      notifyListeners();
+    }, onError: (Object _) {});
   }
 
   Future<void> _cargarUsuarios() async {
@@ -314,6 +360,8 @@ class PanelAdminViewModel extends ChangeNotifier {
   void dispose() {
     _deportesSub?.cancel();
     _pagosSub?.cancel();
+    _eventosSub?.cancel();
+    _solicitudesSub?.cancel();
     for (final s in _asistenciaSubs.values) {
       s.cancel();
     }

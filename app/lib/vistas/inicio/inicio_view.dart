@@ -86,6 +86,12 @@ class InicioView extends StatelessWidget {
             icono: Icons.groups_outlined,
             ruta: Rutas.disciplinasEntrenador,
           ),
+          SeccionInicio(
+            titulo: 'Solicitar disciplina',
+            descripcion: 'Pide dirigir otra disciplina',
+            icono: Icons.add_task_outlined,
+            ruta: Rutas.solicitarDisciplina,
+          ),
           _miPerfil,
         ],
         Administrador() => const [
@@ -118,6 +124,12 @@ class InicioView extends StatelessWidget {
             descripcion: 'Publica eventos y revisa sus reservas',
             icono: Icons.celebration_outlined,
             ruta: Rutas.adminEventos,
+          ),
+          SeccionInicio(
+            titulo: 'Solicitudes',
+            descripcion: 'Entrenadores que piden otra disciplina',
+            icono: Icons.how_to_reg_outlined,
+            ruta: Rutas.adminSolicitudes,
           ),
           _miPerfil,
         ],

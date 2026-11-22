@@ -19,6 +19,7 @@ class ResenaRepositoryFirebase implements ResenaRepository {
     required String idDeporte,
     required int calificacion,
     required String comentario,
+    int? calificacionEntrenador,
   }) async {
     // Solo reseña quien se inscribió alguna vez (activa o cancelada). Las
     // reglas de Firestore lo vuelven a comprobar.
@@ -36,6 +37,7 @@ class ResenaRepositoryFirebase implements ResenaRepository {
       idEstudiante: estudiante.id,
       nombreEstudiante: estudiante.nombreCompleto,
       calificacion: calificacion,
+      calificacionEntrenador: calificacionEntrenador,
       comentario: comentario.trim(),
       fecha: DateTime.now(),
       editada: anterior.exists,
