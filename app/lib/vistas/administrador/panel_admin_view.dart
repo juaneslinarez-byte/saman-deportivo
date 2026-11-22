@@ -21,6 +21,8 @@ class PanelAdminView extends StatelessWidget {
         usuarioRepository: context.read<UsuarioRepository>(),
         pagoRepository: context.read<PagoRepository>(),
         asistenciaRepository: context.read<AsistenciaRepository>(),
+        eventoRepository: context.read<EventoRepository>(),
+        solicitudRepository: context.read<SolicitudRepository>(),
       )..cargar(),
       child: const _Pantalla(),
     );
@@ -116,6 +118,15 @@ class _Contenido extends StatelessWidget {
                   ruta: Rutas.adminUsuarios,
                 ),
                 TarjetaIndicador(
+                  icono: Icons.groups_outlined,
+                  titulo: 'Usuarios',
+                  valor: '${vm.totalUsuarios}',
+                  detalle:
+                      '${vm.totalEntrenadores} entrenadores · '
+                      '${vm.cuentasDeshabilitadas} deshabilitados',
+                  ruta: Rutas.adminUsuarios,
+                ),
+                TarjetaIndicador(
                   icono: Icons.sports_outlined,
                   titulo: 'Disciplinas',
                   valor: '${vm.totalDisciplinas}',
@@ -150,6 +161,25 @@ class _Contenido extends StatelessWidget {
                             'por aprobar',
                   ruta: Rutas.adminPagos,
                   resaltado: vm.pagosEnRevision > 0,
+                ),
+                TarjetaIndicador(
+                  icono: Icons.celebration_outlined,
+                  titulo: 'Eventos',
+                  valor: '${vm.eventosProximos}',
+                  detalle: vm.eventosProximos == 0
+                      ? 'No hay eventos próximos'
+                      : '${vm.personasReservadas} personas con reserva',
+                  ruta: Rutas.adminEventos,
+                ),
+                TarjetaIndicador(
+                  icono: Icons.add_task_outlined,
+                  titulo: 'Solicitudes',
+                  valor: '${vm.solicitudesPendientes}',
+                  detalle: vm.solicitudesPendientes == 0
+                      ? 'Ninguna por revisar'
+                      : 'De entrenadores por revisar',
+                  ruta: Rutas.adminSolicitudes,
+                  resaltado: vm.solicitudesPendientes > 0,
                 ),
               ],
             ),
